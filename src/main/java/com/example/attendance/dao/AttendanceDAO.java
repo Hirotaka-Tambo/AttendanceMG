@@ -35,7 +35,7 @@ public class AttendanceDAO extends HttpServlet {
 	
 	public List<Attendance>findByUserId(String userId){
 		return attendanceRecords.stream()
-				.filter(att -> userId.eruals(att.getUserId()))
+				.filter(att -> userId.equals(att.getUserId()))
 				.collect(Collectors.toList());
 	}
 	
