@@ -49,6 +49,7 @@ public class User extends HttpServlet {
 		return enabled;
 	}
 	
+	
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
 	}
