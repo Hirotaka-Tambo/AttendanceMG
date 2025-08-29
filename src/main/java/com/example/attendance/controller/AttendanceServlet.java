@@ -1,5 +1,15 @@
 package com.example.attendance.controller;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -8,24 +18,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-import org.apache.naming.java.javaURLContextFactory;
-
 import com.example.attendance.dao.AttendanceDAO;
 import com.example.attendance.dto.Attendance;
 import com.example.attendance.dto.User;
-
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.sql.Time;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.Temporal;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Servlet implementation class AttendanceServlet
@@ -79,9 +74,9 @@ public class AttendanceServlet extends HttpServlet {
 			List<Attendance> filteredRecords = attendanceDAO.findFilteredRecords(filterUserId, startDate, endDate);
 				request.setAttribute("allAttendanceRecords", filteredRecords);
 				
-			Map<String, Long> totalHoursByUserMap = filteredRecords.stream().collect(Collectors.groupingBy(Attendance::getUserId,Collectors.summingLong(att->{
-					if(attendanceDAO.getCheckInTime() != null && attendanceDAO.getCheckOutTime() != null) {
-						return java.Time.Temporal.ChronoUnit.HOURS.between(att.getCheckInTime(), att.getCheckOutTime());
+			Map<String, Long> totalHoursByUser = filteredRecords.stream().collect(Collectors.groupingBy(Attendance::getUserId,Collectors.summingLong(att->{
+					if(att.getCheckInTime() != null && att.getCheckOutTime() != null) {
+						return java.time.temporal.ChronoUnit.HOURS.between(att.getCheckInTime(), att.getCheckOutTime());
 					}
 					return 0L;
 				})));
@@ -97,8 +92,8 @@ public class AttendanceServlet extends HttpServlet {
 				if("admin".equals(user.getRole())) {
 					request.setAttribute("allAtendanceRecords", attendanceDAO.findAll());
 					Map<String, Long> totalHoursByUser = attendanceDAO.findAll().stream().collect(Collectors.groupingBy(Attendance::getUserId,Collectors.summingLong(att ->{
-						if(attendanceDAO.getCheckInTime() != null && attendanceDAO.getCheckOutTime() != null) {
-							return java.time.temporal.ChronoUnit.HOURS.between(att.getCheckInTime(), att.getCheckOutTIme());
+						if(att.getCheckInTime() != null && att.getCheckOutTime() != null) {
+							return java.time.temporal.ChronoUnit.HOURS.between(att.getCheckInTime(), att.getCheckOutTime());
 						}
 						return 0L;
 									
@@ -138,7 +133,7 @@ public class AttendanceServlet extends HttpServlet {
 		}else if("check_out".equals(action)) {
 			attendanceDAO.checkOut(user.getUsername());
 			session.setAttribute("successMessage", "退勤を記録しました");
-		}else if("add_manual".equals(action) && "adimin".equals(user.getRole())) {
+		}else if("add_manual".equals(action) && "admin".equals(user.getRole())) {
 			String userId = request.getParameter("userId");
 			String checkInStr = request.getParameter("checkInTime");
 			String checkOutStr = request.getParameter("checkOutTime");
@@ -155,10 +150,10 @@ public class AttendanceServlet extends HttpServlet {
 		}else if("update_manual".equals(action)&& "admin".equals(user.getRole())) {
 			String userId = request.getParameter("userId");
 			
-			LocalDateTime oldCheckIn = LocalDateTime.parse(request.getParameter("oldcheckInTime"));
+			LocalDateTime oldCheckIn = LocalDateTime.parse(request.getParameter("oldCheckInTime"));
 			LocalDateTime oldCheckOut = request.getParameter("oldCheckOutTime") != null && !request.getParameter("oldCheckOutTime").isEmpty()? LocalDateTime.parse(request.getParameter("oldCheckOutTime")): null; 
 			
-			LocalDateTime newCheckIn = LocalDateTime.parse(request.getParameter("newCheckIntTime"));
+			LocalDateTime newCheckIn = LocalDateTime.parse(request.getParameter("newCheckInTime"));
 			LocalDateTime newCheckOut = request.getParameter("newCheckOutTime") != null && !request.getParameter("newCheckOutTime").isEmpty()? LocalDateTime.parse(request.getParameter("newCheckOutTime")) : null;
 			
 			if(attendanceDAO.updateManualAttendance(userId, oldCheckIn, oldCheckOut, newCheckIn, newCheckOut)) {	
@@ -179,10 +174,11 @@ public class AttendanceServlet extends HttpServlet {
 		}
 		
 		if("admin".equals(user.getRole())) {
-			response.sendRedirect("attendance?action=filter&filterUserId="+
-		(request.getParameter("filterUserId") != null ? request.getParameter("filterUserId") : "")+
-		"&startDate=" + (request.getParameter("startDate") != null ? request.getParameter("startDate") : ""+)
-		"&endDate=" +(request.getParameter("endDate" != null ? request.getParameter("endDate") : ""));
+			response.sendRedirect("attendance?action=filter"+
+		"&filterUserId="+(request.getParameter("filterUserId") != null ? request.getParameter("filterUserId") : "")+
+		"&startDate=" + (request.getParameter("startDate") != null ? request.getParameter("startDate") : "")+
+		"&endDate=" +(request.getParameter("endDate") != null ? request.getParameter("endDate") : "")
+		);
 		}else {
 			response.sendRedirect("attendance");
 		}
@@ -190,7 +186,7 @@ public class AttendanceServlet extends HttpServlet {
 	
 	private void exportCsv(HttpServletRequest req, HttpServletResponse resp)throws IOException {
 		
-		resp.setContentType("text/csv: charset=UTF-8");
+		resp.setContentType("text/csv; charset=UTF-8");
 		resp.setHeader("Content-Disposition", "attachment;filename=\"attendance_recordscsv\"");
 		
 		PrintWriter writer = resp.getWriter();
@@ -215,7 +211,7 @@ public class AttendanceServlet extends HttpServlet {
 		}
 		
 		List<Attendance> records = attendanceDAO.findFilteredRecords(filterUserId, startDate, endDate);
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM--dd HH:mm:ss");
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 		
 		for(Attendance record:records) {
 			writer.append(String.format("%s,%s,%s%n",record.getUserId(),record.getCheckInTime()!=null ? record.getCheckInTime().format(formatter):"",

@@ -40,7 +40,7 @@ public class LoginServlet extends HttpServlet {
 			session.setAttribute("user", user);
 			session.setAttribute("successMessage", "ログインしました");
 			
-			if("admin".equals(username.getRole())) {
+			if("admin".equals(user.getRole())) {
 				request.setAttribute("allAtendanceRecords", attendanceDAO.findAll());
 				
 				Map<String, Long>totalHoursByUser = attendanceDAO.findAll().stream().collect(Collectors.groupingBy(com.example.attendance.dto.Attendance:: getUserId,Collectors.summingLong(att ->{

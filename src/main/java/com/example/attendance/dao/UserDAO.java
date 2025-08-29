@@ -9,8 +9,7 @@ import java.util.Map;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 
-import org.apache.catalina.User;
-
+import com.example.attendance.dto.User;
 /**
  * Servlet implementation class UserDAO
  */
@@ -56,14 +55,14 @@ public class UserDAO extends HttpServlet {
 	public void resetPassword(String username,String newPassword) {
 		User user = users.get(username);
 		if(user != null) {
-			users.put(username, new User(user.getUsername(), hashPassword(newPassword),user.getRoles(),user.isEnabled()));
+			users.put(username, new User(user.getUsername(), hashPassword(newPassword),user.getRole(),user.isEnabled()));
 		}
 	}
 	
 	public void toggleUserEnabled(String username, boolean enabled) {
 		User user = users.get(username);
 		if(user != null) {
-			users.put(username,new User(user.getUsername(),user.getPassword(),user.getRoles(),enabled));
+			users.put(username,new User(user.getUsername(),user.getPassword(),user.getRole(),enabled));
 		}
 	}
 	
