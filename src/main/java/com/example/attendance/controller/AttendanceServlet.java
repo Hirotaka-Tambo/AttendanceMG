@@ -76,14 +76,14 @@ public class AttendanceServlet extends HttpServlet {
 				request.setAttribute("errorMessage", "日付の形式が不正です。");
 			}
 			
-			List<Attendance> filteredRecordsAttendances = attendanceDAO.findFilteredRecords(filterUserId, startDate, endDate){
-				request.setAttribute("allAttendanceRecords", filteredRecordsAttendances);
+			List<Attendance> filteredRecords = attendanceDAO.findFilteredRecords(filterUserId, startDate, endDate);
+				request.setAttribute("allAttendanceRecords", filteredRecords);
 				
-				Map<String, Long> totalHoursByUserMap = filteredRecords.stream().collect(Collectors.groupingBy(Attendance::getUserId,Collectors.summingLong(att->{
+			Map<String, Long> totalHoursByUserMap = filteredRecords.stream().collect(Collectors.groupingBy(Attendance::getUserId,Collectors.summingLong(att->{
 					if(attendanceDAO.getCheckInTime() != null && attendanceDAO.getCheckOutTime() != null) {
 						return java.Time.Temporal.ChronoUnit.HOURS.between(att.getCheckInTime(), att.getCheckOutTime());
 					}
-					return OL;
+					return 0L;
 				})));
 			request.setAttribute("totalHoursByUser", totalHoursByUser);
 			
@@ -100,7 +100,7 @@ public class AttendanceServlet extends HttpServlet {
 						if(attendanceDAO.getCheckInTime() != null && attendanceDAO.getCheckOutTime() != null) {
 							return java.time.temporal.ChronoUnit.HOURS.between(att.getCheckInTime(), att.getCheckOutTIme());
 						}
-						return OL;
+						return 0L;
 									
 					})));
 					
