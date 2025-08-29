@@ -109,6 +109,7 @@ public class AttendanceDAO extends HttpServlet {
 		(att.getCheckOutTime() == null? checkOut == null : att.getCheckOutTime().equals(checkOut))
 				);
 	}
+
 	
 	
 	
