@@ -1,13 +1,9 @@
 package com.example.attendance.dto;
 
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-
 /**
  * Servlet implementation class User
  */
-@WebServlet("/User")
-public class User extends HttpServlet {
+public class User {
 	private String username;
 	private String password;
 	private String role;
