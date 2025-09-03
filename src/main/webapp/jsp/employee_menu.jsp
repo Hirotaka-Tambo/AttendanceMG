@@ -40,11 +40,22 @@
         </thead>
         
         <tbody>
-           <c:
-        </tbody>
+           <c:forEach var="att" items="${attendanceRecords}">
+              <tr>
+                 <td>${att.chckInTime}</td>
+                 <td>${att.checkOutTime}</td>
+              </tr>
+           </c:forEach>
            
-     
+           <c:if test="${empty attendanceRecords}">
+              <tr><td colspan="2">勤怠記録がありません。</td></tr>
+           </c:if>
+        </tbody>
      </table>
+     
+     <div class="button-group">
+        <a href="logout" class="button secondary">ログアウト</a>
+     </div>
      
   </div>
 
