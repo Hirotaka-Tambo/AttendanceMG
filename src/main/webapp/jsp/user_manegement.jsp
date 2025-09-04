@@ -19,7 +19,15 @@
          <a href="logout">ログアウト</a>
       </div>
       
-      <c:if test="${not empty sessionScope.success}"
+      <c:if test="${not empty sessionScope.successMessage}">
+         <p class="success-message"><c: out value="${sessionScope.successMessage}"/></p>
+         <c:remove var="successMessage" scope="session"/>
+      </c:if>
+      
+      <h2>ユーザー追加/編集</h2>
+      <form action="users" method="post" class="user-form">
+         <input type="hidden" name="action" value="<c:choose><c:when test="${userToEdit != null}">update</c:when><c:otherwise>add</c:otherwise></c:choose>">
+      </form>
    
    </div>
 
