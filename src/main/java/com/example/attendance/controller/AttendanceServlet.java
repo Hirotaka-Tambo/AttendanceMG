@@ -25,7 +25,7 @@ import com.example.attendance.dto.User;
 /**
  * Servlet implementation class AttendanceServlet
  */
-@WebServlet("/AttendanceServlet")
+@WebServlet("/attendance")
 public class AttendanceServlet extends HttpServlet {
 	
 	private final AttendanceDAO attendanceDAO = new AttendanceDAO();  

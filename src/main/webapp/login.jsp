@@ -1,11 +1,11 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <title>勤怠管理システム - ログイン</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/style.css">
 </head>
 <body>
 <div class = "container">

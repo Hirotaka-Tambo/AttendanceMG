@@ -59,7 +59,7 @@ public class LoginServlet extends HttpServlet {
 
 	        } else {
 	            // 一般ユーザー用の画面にフォワード
-	            request.getRequestDispatcher("/jsp/user_menu.jsp").forward(request, response);
+	            request.getRequestDispatcher("/jsp/employee_menu.jsp").forward(request, response);
 	        }
 
 	    } else {

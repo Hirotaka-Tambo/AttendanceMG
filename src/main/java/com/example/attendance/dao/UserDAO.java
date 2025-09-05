@@ -22,7 +22,6 @@ public class UserDAO extends HttpServlet {
 		users.put("employee1", new User("employee1", hashPassword("password"), "employee", true)); 
 		users.put("admin1", new User("admin1", hashPassword("adminpass"), "admin", true)); 
 		users.put("employee2", new User("employee2", hashPassword("password"), "employee", true));
-
 	}
 	
 	

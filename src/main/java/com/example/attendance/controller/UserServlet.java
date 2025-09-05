@@ -17,7 +17,7 @@ import com.example.attendance.dto.User;
 /**
  * Servlet implementation class UserServlet
  */
-@WebServlet("/UserServlet")
+@WebServlet("/users")
 public class UserServlet extends HttpServlet {
 	private final UserDAO userDAO = new UserDAO();
 	
@@ -45,7 +45,7 @@ public class UserServlet extends HttpServlet {
 		if("list".equals(action) || action == null) {
 			Collection<User> users = userDAO.getAllUsers();
 			request.setAttribute("users", users);
-			RequestDispatcher rd = request.getRequestDispatcher("/jsp/user_management.jsp");
+			RequestDispatcher rd = request.getRequestDispatcher("/jsp/user_manegement.jsp");
 			rd.forward(request, response);
 		}else {
 			response.sendRedirect("users?action=list");
