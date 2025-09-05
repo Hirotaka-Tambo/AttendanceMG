@@ -6,6 +6,7 @@
 <head>
 <meta charset="UTF-8">
 <title>従業員メニュー</title>
+<link rel="stylesheet" href="../style.css">
 </head>
 <body>
   <div class="container">

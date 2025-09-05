@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -30,36 +29,43 @@ public class LoginServlet extends HttpServlet {
 	 */
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		
-		String username = request.getParameter("username");
-		String password = request.getParameter("password");
-		User user = userDAO.findByUsername(username);
-		if(user != null && user.isEnabled()&& userDAO.verifyPassword(username, password)) {
-			HttpSession session = request.getSession();
-			session.setAttribute("user", user);
-			session.setAttribute("successMessage", "ログインしました");
-			
-			if("admin".equals(user.getRole())) {
-				request.setAttribute("allAtendanceRecords", attendanceDAO.findAll());
-				
-				Map<String, Long>totalHoursByUser = attendanceDAO.findAll().stream().collect(Collectors.groupingBy(com.example.attendance.dto.Attendance:: getUserId,Collectors.summingLong(att ->{
-					if(att.getCheckInTime() != null && att.getCheckOutTime() != null) {
-						return java.time.temporal.ChronoUnit.HOURS.between(att.getCheckInTime(), att.getCheckOutTime());
-					}
-					return 0L;
-					
-				})));
-				
-		     request.setAttribute("totalHoursByUser", totalHoursByUser);
-		     RequestDispatcher rd = request.getRequestDispatcher("/jsp/admin_menu.jsp");
-		     rd.forward(request,response);
-			}else {
-				request.setAttribute("errorMessage","ユーザーIDまたはパスワードが不正、もしくはアカウントが無効です");
-				RequestDispatcher rd = request.getRequestDispatcher("/login.jsp");rd.forward(request, response);
-				}
+	    String username = request.getParameter("username");
+	    String password = request.getParameter("password");
+	    User user = userDAO.findByUsername(username);
 
-		}
+	    if (user != null && user.isEnabled() && userDAO.verifyPassword(username, password)) {
+	        HttpSession session = request.getSession();
+	        session.setAttribute("user", user);
+	        session.setAttribute("successMessage", "ログインしました");
+
+	        if ("admin".equals(user.getRole())) {
+	            // 管理者の場合
+	            request.setAttribute("allAtendanceRecords", attendanceDAO.findAll());
+
+	            Map<String, Long> totalHoursByUser = attendanceDAO.findAll().stream()
+	                .collect(Collectors.groupingBy(
+	                    com.example.attendance.dto.Attendance::getUserId,
+	                    Collectors.summingLong(att -> {
+	                        if (att.getCheckInTime() != null && att.getCheckOutTime() != null) {
+	                            return java.time.temporal.ChronoUnit.HOURS
+	                                .between(att.getCheckInTime(), att.getCheckOutTime());
+	                        }
+	                        return 0L;
+	                    })
+	                ));
+
+	            request.setAttribute("totalHoursByUser", totalHoursByUser);
+	            request.getRequestDispatcher("/jsp/admin_menu.jsp").forward(request, response);
+
+	        } else {
+	            // 一般ユーザー用の画面にフォワード
+	            request.getRequestDispatcher("/jsp/user_menu.jsp").forward(request, response);
+	        }
+
+	    } else {
+	        // ログイン失敗時
+	        request.setAttribute("errorMessage", "ユーザーIDまたはパスワードが不正、もしくはアカウントが無効です");
+	        request.getRequestDispatcher("/login.jsp").forward(request, response);
+	    }
 	}
-
 }
