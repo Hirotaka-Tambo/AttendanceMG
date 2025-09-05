@@ -19,7 +19,7 @@ import com.example.attendance.dto.User;
 /**
  * Servlet implementation class LoginServlet
  */
-@WebServlet("/LoginServlet")
+@WebServlet("/login")
 public class LoginServlet extends HttpServlet {
 	
 	private final UserDAO userDAO = new UserDAO();
