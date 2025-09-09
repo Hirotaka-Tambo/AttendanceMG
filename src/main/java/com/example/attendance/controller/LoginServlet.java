@@ -40,7 +40,7 @@ public class LoginServlet extends HttpServlet {
 
 	        if ("admin".equals(user.getRole())) {
 	            // 管理者の場合
-	            request.setAttribute("allAtendanceRecords", attendanceDAO.findAll());
+	            response.sendRedirect(request.getContextPath() + "/admin_menu");
 
 	            Map<String, Long> totalHoursByUser = attendanceDAO.findAll().stream()
 	                .collect(Collectors.groupingBy(
@@ -59,7 +59,7 @@ public class LoginServlet extends HttpServlet {
 
 	        } else {
 	            // 一般ユーザー用の画面にフォワード
-	            request.getRequestDispatcher("/jsp/employee_menu.jsp").forward(request, response);
+	            response.sendRedirect(request.getContextPath() + "/employee_menu");
 	        }
 
 	    } else {
