@@ -31,15 +31,23 @@ public class UserServlet extends HttpServlet {
 		HttpSession session = request.getSession(false);
 		User currentUser = (User) session.getAttribute("user");
 		
+		//管理者権限のチェック
 		if(currentUser == null || !"admin".equals(currentUser.getRole())) {
 			response.sendRedirect("login.jsp");
 			return;
 		}
 		
-		String message = (String) session.getAttribute("successMessage");
-		if(message != null) {
-			request.setAttribute("successMessage",message);
+		//メッセージの受け流し
+		String successMessage = (String) session.getAttribute("successMessage");
+		if(successMessage != null) {
+			request.setAttribute("successMessage",successMessage);
 			session.removeAttribute("successMessage");
+		}
+		
+		String errorMessage = (String) session.getAttribute("errorMessage");
+		if (errorMessage != null) {
+			request.setAttribute("errorMessage", errorMessage);
+			session.removeAttribute("errorMessage");
 		}
 		
 		if("list".equals(action) || action == null) {
@@ -48,7 +56,7 @@ public class UserServlet extends HttpServlet {
 			RequestDispatcher rd = request.getRequestDispatcher("/jsp/user_manegement.jsp");
 			rd.forward(request, response);
 		}else {
-			response.sendRedirect("users?action=list");
+			response.sendRedirect(request.getContextPath() + "/users?action=list");
 		}
 	}
 
@@ -63,52 +71,64 @@ public class UserServlet extends HttpServlet {
 		HttpSession session = request.getSession(false);
 		User currentUser = (User) session.getAttribute("user");
 		
-		if(currentUser == null || "admin".equals(currentUser.getRole())) {
+		if(currentUser == null || !"admin".equals(currentUser.getRole())) {
 			response.sendRedirect("login.jsp");
 			return;
 		}
 		
-		if("add".equals(action)) {
-			String username = request.getParameter("username");
-			String password = request.getParameter("password");
-			String role = request.getParameter("role");
-			
-			if(userDAO.findByUsername(username)== null) {
-				userDAO.addUser(new User(username, UserDAO.hashPassword(password), role));
-				session.setAttribute("successMessage", "ユーザーを追加しました");
-			}else {
-				request.setAttribute("errorMessage", "ユーザーIDは既に存在します");
-			}
-		}else if("update".equals(action)) {
-			String username = request.getParameter("username");
-			String role = request.getParameter("role");
-			boolean enabled = request.getParameter("enabled") != null;
-			
-			User existingUser = userDAO.findByUsername(username);
-			if(existingUser != null) {
-				userDAO.updateUser(new User(username, existingUser.getPassword(), role,enabled));
+		try {
+			if ("add".equals(action)) {
+				String username = request.getParameter("username");
+				String password = request.getParameter("password");
+				String role = request.getParameter("role");
 				
-				session.setAttribute("successMessage", "ユーザー情報を更新しました");
+				if (userDAO.findByUsername(username) == null) {
+					User newUser = new User(username, null, role, true);
+					userDAO.addUser(newUser, password);
+					session.setAttribute("successMessage", "ユーザーを追加しました");
+				} else {
+					session.setAttribute("errorMessage", "ユーザーIDは既に存在します");
+				}
+				
+			} else if ("update".equals(action)) {
+				String username = request.getParameter("username");
+				String role = request.getParameter("role");
+				boolean enabled = request.getParameter("enabled") != null;
+				
+				User existingUser = userDAO.findByUsername(username);
+				
+				if (existingUser != null) {
+					existingUser.setRole(role);
+					existingUser.setEnabled(enabled);
+					userDAO.updateUser(existingUser);
+					session.setAttribute("successMessage", "ユーザー情報を更新しました");
+				}
+				
+			} else if ("delete".equals(action)) {
+				String username = request.getParameter("username");
+				userDAO.deleteUser(username); // タイプミスを修正
+				session.setAttribute("successMessage", "ユーザーを削除しました");
+				
+			} else if ("reset_password".equals(action)) {
+				String username = request.getParameter("username");
+				String newPassword = request.getParameter("newPassword");
+				userDAO.resetPassword(username, newPassword);
+				session.setAttribute("successMessage", username + "のパスワードをリセットしました。(デフォルトパスワード:" + newPassword + ")");
+				
+			} else if ("toggle_enabled".equals(action)) {
+				String username = request.getParameter("username");
+				boolean enabled = "true".equals(request.getParameter("enabled")); // チェックボックスの値の取得方法を修正
+				userDAO.toggleUserEnabled(username, enabled);
+				session.setAttribute("successMessage", username + "のアカウントを" + (enabled ? "有効" : "無効") + "にしました。");
 			}
-		}else if("delete".equals(action)) {
-			String username = request.getParameter("username");
-			userDAO.deleteUer(username);
-			session.setAttribute("successMessage", "ユーザーを削除しました");
-		}else if("reset_password".equals(action)){
-			String username = request.getParameter("username");
-			String newPassword = request.getParameter("newPassword");
-			userDAO.resetPassword(username, newPassword);
-			session.setAttribute("successMessage", username + "のパスワードをリセットしました。(デフォルトパスワード:"+newPassword+")");
-		}else if("toggle_enabled".equals(action)) {
-			String username = request.getParameter("username");
-			boolean enabled = Boolean.parseBoolean(request.getParameter("enabled"));
-			userDAO.toggleUserEnabled(username, enabled);
-			session.setAttribute("successMessage", username + "のアカウントを" + (enabled ? "有効" : "無効") + "にしました。");
 			
-			
+		} catch (Exception e) {
+			session.setAttribute("errorMessage", "操作中にエラーが発生しました: " + e.getMessage());
 		}
 		
-		response.sendRedirect("users?action=list");
+		
+		
+		response.sendRedirect(request.getContextPath() + "users?action=list");
 		
 	}
 
