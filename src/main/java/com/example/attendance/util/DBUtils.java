@@ -9,9 +9,24 @@ public class DBUtils{
 	private static final String USER = "postgres";
 	private static final String PASSWORD = "postgres";
 	
-	public static Connection getConnection() throws SQLException{
-		return DriverManager.getConnection(URL, USER, PASSWORD);
-	}
-	
+	static {
+        try {
+            // PostgreSQL JDBCドライバを明示的にロード
+            Class.forName("org.postgresql.Driver");
+            System.out.println("PostgreSQL JDBC Driver loaded successfully.");
+        } catch (ClassNotFoundException e) {
+            System.err.println("PostgreSQL JDBC Driver not found.");
+            e.printStackTrace();
+            // ドライバが見つからない場合はRuntimeExceptionをスロー
+            throw new RuntimeException("JDBCドライバのロードに失敗しました。", e);
+        }
+    }
+
+    public static Connection getConnection() throws SQLException {
+        System.out.println("Attempting to connect to database...");
+        Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+        System.out.println("Database connection successful.");
+        return conn;
+    }
 	
 }
