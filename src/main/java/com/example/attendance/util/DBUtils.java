@@ -23,10 +23,13 @@ public class DBUtils{
     }
 
     public static Connection getConnection() throws SQLException {
-        System.out.println("Attempting to connect to database...");
-        Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
-        System.out.println("Database connection successful.");
-        return conn;
+        
+    	try {
+            return DriverManager.getConnection(URL, USER, PASSWORD);
+        } catch (SQLException e) {
+            System.err.println("データベース接続に失敗しました。詳細: " + e.getMessage());
+            throw e; // 例外を再スローして元のスタックトレースを維持
+        }
     }
 	
 }

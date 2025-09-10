@@ -1,8 +1,6 @@
 package com.example.attendance.controller;
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -11,7 +9,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-import com.example.attendance.dao.AttendanceDAO;
 import com.example.attendance.dao.UserDAO;
 import com.example.attendance.dto.User;
 
@@ -22,11 +19,6 @@ import com.example.attendance.dto.User;
 public class LoginServlet extends HttpServlet {
 	
 	private final UserDAO userDAO = new UserDAO();
-	private final AttendanceDAO attendanceDAO = new AttendanceDAO();	
-
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 	    String username = request.getParameter("username");
@@ -39,27 +31,11 @@ public class LoginServlet extends HttpServlet {
 	        session.setAttribute("successMessage", "ログインしました");
 
 	        if ("admin".equals(user.getRole())) {
-	            // 管理者の場合
-	            response.sendRedirect(request.getContextPath() + "/admin_menu");
-
-	            Map<String, Long> totalHoursByUser = attendanceDAO.findAll().stream()
-	                .collect(Collectors.groupingBy(
-	                    com.example.attendance.dto.Attendance::getUserId,
-	                    Collectors.summingLong(att -> {
-	                        if (att.getCheckInTime() != null && att.getCheckOutTime() != null) {
-	                            return java.time.temporal.ChronoUnit.HOURS
-	                                .between(att.getCheckInTime(), att.getCheckOutTime());
-	                        }
-	                        return 0L;
-	                    })
-	                ));
-
-	            request.setAttribute("totalHoursByUser", totalHoursByUser);
-	            request.getRequestDispatcher("/jsp/admin_menu.jsp").forward(request, response);
-
+	            // 管理者の場合、AttendanceServletにリダイレクト
+	            response.sendRedirect(request.getContextPath() + "/attendance");
 	        } else {
-	            // 一般ユーザー用の画面にフォワード
-	            response.sendRedirect(request.getContextPath() + "/employee_menu");
+	            // 一般ユーザーの場合、AttendanceServletにリダイレクト
+	            response.sendRedirect(request.getContextPath() + "/attendance");
 	        }
 
 	    } else {
