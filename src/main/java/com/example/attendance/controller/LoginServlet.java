@@ -17,6 +17,7 @@ import com.example.attendance.dto.User;
  */
 @WebServlet("/login")
 public class LoginServlet extends HttpServlet {
+	//セキュリティ強化のために、hash+saltで強固に
 	
 	private final UserDAO userDAO = new UserDAO();
 	@Override
