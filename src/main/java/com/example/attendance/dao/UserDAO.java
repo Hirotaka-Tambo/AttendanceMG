@@ -152,32 +152,28 @@ public class UserDAO {
         }
     }
 	
-	// パスワードをハッシュ化して、ソルトを追加する
-			private String hashPassword(String password, String salt) {
-				try {
-					MessageDigest md = MessageDigest.getInstance("SHA-256");
-					md.update(salt.getBytes());
-					byte[] hashedBytes = md.digest(password.getBytes());
-					StringBuilder sb = new StringBuilder();
-					for(byte b: hashedBytes) {
-						sb.append(String.format("%02x",b));
-					}
-					return sb.toString();
-				}catch(NoSuchAlgorithmException e){
-					e.printStackTrace();
-					throw new RuntimeException("ユーザーの検索に失敗しました。",e);
-				}
-			}
 	
-			// 一時的なメインメソッド
-			public static void main(String[] args) {
-			    UserDAO userDAO = new UserDAO();
-			    String password = "adminpass";
-			    String salt = "a20a7b4f-8b9f-4f6d-8a6c-5e4c2f1b8a5b"; // 任意のソルト。同じものを利用してください
-			    String hashedPassword = userDAO.hashPassword(password, salt);
-			    
-			    System.out.println("ソルト: " + salt);
-			    System.out.println("ハッシュ化されたパスワード: " + hashedPassword);
-			}
+ // パスワードをハッシュ化して、ソルトを追加する
+    private String hashPassword(String password, String salt) {
+        try {
+            // パスワードとソルトを結合
+            String combinedString = password + salt; 
+            
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            // 結合された文字列をハッシュ化
+            byte[] hashedBytes = md.digest(combinedString.getBytes());
+            
+            StringBuilder sb = new StringBuilder();
+            for(byte b: hashedBytes) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
+        } catch(NoSuchAlgorithmException e){
+            e.printStackTrace();
+            throw new RuntimeException("パスワードのハッシュ化に失敗しました。", e);
+        }
+    }
+	
+    
 
 }
