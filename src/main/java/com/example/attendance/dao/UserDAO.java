@@ -16,30 +16,27 @@ import com.example.attendance.util.DBUtils;
 
 public class UserDAO {
 	
-	// パスワードハッシュ化にソルトを追加する(セキュリティの強化)
-	public void addUser(User user,String plainPassword) {
+	// UserServletからの呼び出しに合わせてaddUserメソッドを修正
+	public void addUser(String username, String password, String role) {
 		String salt = UUID.randomUUID().toString();
-		String hashedPassWord = hashPassword(plainPassword,salt);
-		String sql = "INSERT INTO users(username,password_hash, salt, user_role, enabled) VALUES(?,?,?,?,?)";
+		String hashedPassWord = hashPassword(password, salt);
+		String sql = "INSERT INTO users(username, password_hash, salt, user_role, enabled) VALUES(?,?,?,?,?)";
 		
 		try(Connection conn = DBUtils.getConnection();
 			PreparedStatement pstmt = conn.prepareStatement(sql)){
-			pstmt.setString(1, user.getUsername());
+			pstmt.setString(1, username);
 			pstmt.setString(2, hashedPassWord);
 			pstmt.setString(3, salt);
-			pstmt.setString(4, user.getRole());
-			pstmt.setBoolean(5, user.isEnabled());
+			pstmt.setString(4, role);
+			pstmt.setBoolean(5, true); // 新規ユーザーはデフォルトで有効
 			pstmt.executeUpdate();
-		}catch (SQLException e) {
-			// TODO: handle exception
+		} catch (SQLException e) {
 			e.printStackTrace();
-			throw new RuntimeException("ユーザーの追加に失敗しました",e);
+			throw new RuntimeException("ユーザーの追加に失敗しました", e);
 		}
 	}
 	
-
-	
-	//ユーザーの検索
+	// ユーザーの検索
 	public User findByUsername(String username) {
         String sql = "SELECT * FROM users WHERE username = ?";
         try (Connection conn = DBUtils.getConnection();
@@ -68,9 +65,7 @@ public class UserDAO {
 		return storedHash.equals(hashedInputPassword);
 	}
 	
-	
-	
-	//全ユーザーの取得
+	// 全ユーザーの取得
 	public Collection<User> getAllUsers() {
         List<User> userList = new ArrayList<>();
         String sql = "SELECT * FROM users ORDER BY username";
@@ -92,7 +87,7 @@ public class UserDAO {
         return userList;
     }
 	
-	//ユーザー情報の更新
+	// ユーザー情報の更新
 	public void updateUser(User user) {
 		String sql = "UPDATE users SET user_role = ?, enabled = ? WHERE username = ?";
 		try (Connection connection = DBUtils.getConnection();
@@ -103,25 +98,25 @@ public class UserDAO {
 			pstmt.executeUpdate();
 		
 		} catch (SQLException e) {
-			// TODO: handle exception
 			e.printStackTrace();
-			throw new RuntimeException("ユーザー情報の更新に失敗しました。",e);
+			throw new RuntimeException("ユーザー情報の更新に失敗しました。", e);
 		}
 	}
 	
+	// ユーザーの削除
 	public void deleteUser(String username) {
-		String sql = "DELETE FROM users WHERE username = ?";
-		try (Connection conn = DBUtils.getConnection();
+	    String sql = "DELETE FROM users WHERE username = ?";
+	    try (Connection conn = DBUtils.getConnection();
 	         PreparedStatement pstmt = conn.prepareStatement(sql)) {
-			pstmt.setString(1, username);
-			pstmt.executeUpdate();
-		} catch (SQLException e) {
-			e.printStackTrace();
+	        pstmt.setString(1, username);
+	        pstmt.executeUpdate();
+	    } catch (SQLException e) {
+	        e.printStackTrace();
 	        throw new RuntimeException("ユーザーの削除に失敗しました。", e);
-	     }
+	    }
 	}
 	
-	 // パスワードのリセット
+    // パスワードのリセット
     public void resetPassword(String username, String newPassword) {
         String salt = UUID.randomUUID().toString();
         String hashedPassword = hashPassword(newPassword, salt);
@@ -138,7 +133,7 @@ public class UserDAO {
         }
     }
 	
- // ユーザーアカウントの有効/無効切り替え
+    // ユーザーアカウントの有効/無効切り替え
     public void toggleUserEnabled(String username, boolean enabled) {
         String sql = "UPDATE users SET enabled = ? WHERE username = ?";
         try (Connection conn = DBUtils.getConnection();
@@ -152,15 +147,11 @@ public class UserDAO {
         }
     }
 	
-	
- // パスワードをハッシュ化して、ソルトを追加する
+    // パスワードをハッシュ化して、ソルトを追加する
     private String hashPassword(String password, String salt) {
         try {
-            // パスワードとソルトを結合
-            String combinedString = password + salt; 
-            
+            String combinedString = password + salt;	
             MessageDigest md = MessageDigest.getInstance("SHA-256");
-            // 結合された文字列をハッシュ化
             byte[] hashedBytes = md.digest(combinedString.getBytes());
             
             StringBuilder sb = new StringBuilder();
@@ -173,7 +164,4 @@ public class UserDAO {
             throw new RuntimeException("パスワードのハッシュ化に失敗しました。", e);
         }
     }
-	
-    
-
 }

@@ -2,49 +2,72 @@ package com.example.attendance.dto;
 
 import java.time.LocalDateTime;
 
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
+public class Attendance {
+    private int id;
+    private String userId;
+    private LocalDateTime checkInTime;
+    private LocalDateTime checkOutTime;
+    private LocalDateTime createdAt;
 
-/**
- * Servlet implementation class Attendance
- */
-@WebServlet("/Attendance")
-public class Attendance extends HttpServlet {
-	
-	private String userId;
-	private LocalDateTime checkInTime;
-	private LocalDateTime checkOutTime;
-	
-	public Attendance(String userId) {
-		this.userId = userId;
-	}
-	
-	
-	public String getUserId() {
-		return userId;
-	}
-	
-	public void setUserId(String userId) {
-		this.userId = userId;
-	}
-	
-	
-	public LocalDateTime getCheckInTime() {
-		return checkInTime;
-	}
-	
-	public void setCheckInTime(LocalDateTime checkInTime) {
-		this.checkInTime = checkInTime;
-	}
-	
-	public LocalDateTime getCheckOutTime() {
-		return checkOutTime;
-	}
-	
-	public void setCheckOutTime(LocalDateTime checkOutTime) {
-		this.checkOutTime = checkOutTime;
-	}
-	
-	
-	
+    // デフォルトコンストラクタ（通常は不要ですが、フレームワークによっては必要になる場合がある）
+    public Attendance() {
+    }
+
+    // 勤怠記録を作成・取得するための主要なコンストラクタ
+    public Attendance(String userId, LocalDateTime checkInTime, LocalDateTime checkOutTime) {
+        this.userId = userId;
+        this.checkInTime = checkInTime;
+        this.checkOutTime = checkOutTime;
+    }
+    
+    // 全てのフィールドを含むコンストラクタ（データベースから全データを取得する場合など）
+    public Attendance(int id, String userId, LocalDateTime checkInTime, LocalDateTime checkOutTime, LocalDateTime createdAt) {
+        this.id = id;
+        this.userId = userId;
+        this.checkInTime = checkInTime;
+        this.checkOutTime = checkOutTime;
+        this.createdAt = createdAt;
+    }
+    
+    // Getterメソッド
+    public int getId() {
+        return id;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public LocalDateTime getCheckInTime() {
+        return checkInTime;
+    }
+
+    public LocalDateTime getCheckOutTime() {
+        return checkOutTime;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    // Setterメソッド
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public void setCheckInTime(LocalDateTime checkInTime) {
+        this.checkInTime = checkInTime;
+    }
+
+    public void setCheckOutTime(LocalDateTime checkOutTime) {
+        this.checkOutTime = checkOutTime;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
 }

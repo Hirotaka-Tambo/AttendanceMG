@@ -12,25 +12,29 @@
   <div class="container">
      <h1>従業員メニュー</h1>
      <p>ようこそ、${user.username}さん</p>
-     
+
      <c:if test="${not empty sessionScope.successMessage}">
          <p class="success-message"><c:out value="${sessionScope.successMessage}"/></p>
          <c:remove var="successMessage" scope="session"/>
      </c:if>
-     
+
      <div class="button-group">
-        <form action="attendance" method="post" style="display:inline;">
-            <input type="hidden" name="action" value="check_in">
-            <input type="submit" value="出勤">
-        </form>
-        
-        <form action="attendance" method="post" style="display:inline;">
-            <input type="hidden" name="action" value="check_out">
-            <input type="submit" value="退勤">
-        </form>
-        
+        <c:if test="${latestRecord != null && latestRecord.checkOutTime == null}">
+            <form action="attendance" method="post" style="display:inline;">
+                <input type="hidden" name="action" value="check_out">
+                <input type="submit" value="退勤" class="button check-out">
+            </form>
+        </c:if>
+
+        <c:if test="${latestRecord == null || latestRecord.checkOutTime != null}">
+            <form action="attendance" method="post" style="display:inline;">
+                <input type="hidden" name="action" value="check_in">
+                <input type="submit" value="出勤" class="button check-in">
+            </form>
+        </c:if>
+
      </div>
-     
+
      <h2>あなたの勤怠履歴</h2>
      <table>
         <thead>
@@ -39,7 +43,7 @@
               <th>退勤時刻</th>
            </tr>
         </thead>
-        
+
         <tbody>
            <c:forEach var="att" items="${attendanceRecords}">
               <tr>
@@ -47,17 +51,17 @@
                  <td>${att.checkOutTime}</td>
               </tr>
            </c:forEach>
-           
+
            <c:if test="${empty attendanceRecords}">
               <tr><td colspan="2">勤怠記録がありません。</td></tr>
            </c:if>
         </tbody>
      </table>
-     
+
      <div class="button-group">
         <a href="logout" class="button secondary">ログアウト</a>
      </div>
-     
+
   </div>
 
 </body>

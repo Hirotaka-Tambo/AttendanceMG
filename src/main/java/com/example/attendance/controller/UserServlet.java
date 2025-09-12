@@ -14,33 +14,24 @@ import jakarta.servlet.http.HttpSession;
 import com.example.attendance.dao.UserDAO;
 import com.example.attendance.dto.User;
 
-/**
- * Servlet implementation class UserServlet
- */
 @WebServlet("/users")
 public class UserServlet extends HttpServlet {
 	private final UserDAO userDAO = new UserDAO();
 	
-	/**
-	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
-	 */
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
 		String action = request.getParameter("action");
 		HttpSession session = request.getSession(false);
 		User currentUser = (User) session.getAttribute("user");
 		
-		//管理者権限のチェック
 		if(currentUser == null || !"admin".equals(currentUser.getRole())) {
 			response.sendRedirect("login.jsp");
 			return;
 		}
 		
-		//メッセージの受け流し
 		String successMessage = (String) session.getAttribute("successMessage");
 		if(successMessage != null) {
-			request.setAttribute("successMessage",successMessage);
+			request.setAttribute("successMessage", successMessage);
 			session.removeAttribute("successMessage");
 		}
 		
@@ -55,17 +46,13 @@ public class UserServlet extends HttpServlet {
 			request.setAttribute("users", users);
 			RequestDispatcher rd = request.getRequestDispatcher("/jsp/user_manegement.jsp");
 			rd.forward(request, response);
-		}else {
+		} else {
 			response.sendRedirect(request.getContextPath() + "/users?action=list");
 		}
 	}
 
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
 		request.setCharacterEncoding("UTF-8");
 		String action = request.getParameter("action");
 		HttpSession session = request.getSession(false);
@@ -83,8 +70,7 @@ public class UserServlet extends HttpServlet {
 				String role = request.getParameter("role");
 				
 				if (userDAO.findByUsername(username) == null) {
-					User newUser = new User(username, null, null, role, true);
-					userDAO.addUser(newUser, password);
+					userDAO.addUser(username, password, role); // userDAOのメソッド呼び出しを修正
 					session.setAttribute("successMessage", "ユーザーを追加しました");
 				} else {
 					session.setAttribute("errorMessage", "ユーザーIDは既に存在します");
@@ -106,7 +92,7 @@ public class UserServlet extends HttpServlet {
 				
 			} else if ("delete".equals(action)) {
 				String username = request.getParameter("username");
-				userDAO.deleteUser(username); // タイプミスを修正
+				userDAO.deleteUser(username);
 				session.setAttribute("successMessage", "ユーザーを削除しました");
 				
 			} else if ("reset_password".equals(action)) {
@@ -117,7 +103,7 @@ public class UserServlet extends HttpServlet {
 				
 			} else if ("toggle_enabled".equals(action)) {
 				String username = request.getParameter("username");
-				boolean enabled = "true".equals(request.getParameter("enabled")); // チェックボックスの値の取得方法を修正
+				boolean enabled = "true".equals(request.getParameter("enabled"));
 				userDAO.toggleUserEnabled(username, enabled);
 				session.setAttribute("successMessage", username + "のアカウントを" + (enabled ? "有効" : "無効") + "にしました。");
 			}
@@ -126,10 +112,6 @@ public class UserServlet extends HttpServlet {
 			session.setAttribute("errorMessage", "操作中にエラーが発生しました: " + e.getMessage());
 		}
 		
-		
-		
-		response.sendRedirect(request.getContextPath() + "users?action=list");
-		
+		response.sendRedirect(request.getContextPath() + "/users?action=list");
 	}
-
 }
