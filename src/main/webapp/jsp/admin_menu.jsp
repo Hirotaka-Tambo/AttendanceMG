@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -108,8 +109,21 @@
         <c:forEach var="att" items="${allAttendanceRecords}">
         <tr>
            <td>${att.userId}</td>
-           <td>${att.checkInTime}</td>
-           <td>${att.checkOutTime}</td>
+           <td>
+              <%
+                 com.example.attendance.dto.Attendance currentAtt = (com.example.attendance.dto.Attendance) pageContext.getAttribute("att");
+                 if (currentAtt.getCheckInTime() != null) {
+                     out.print(currentAtt.getCheckInTime().format(java.time.format.DateTimeFormatter.ofPattern("yyyy年MM月dd日 HH:mm:ss")));
+                 }
+              %>
+           </td>
+           <td>
+              <%
+                 if (currentAtt.getCheckOutTime() != null) {
+                     out.print(currentAtt.getCheckOutTime().format(java.time.format.DateTimeFormatter.ofPattern("yyyy年MM月dd日 HH:mm:ss")));
+                 }
+              %>
+           </td>
            <td class="table-actions">
            <form action="attendance" method="post" style="display:inline;">
               <input type="hidden" name="action" value="delete_manual">
@@ -153,6 +167,5 @@
       
     </form>
 </div>
-
 </body>
 </html>
