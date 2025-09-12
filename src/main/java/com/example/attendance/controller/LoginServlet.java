@@ -26,7 +26,7 @@ public class LoginServlet extends HttpServlet {
 	    String password = request.getParameter("password");
 	    User user = userDAO.findByUsername(username);
 
-	    if (user != null && user.isEnabled() && userDAO.verifyPassword(username, password)) {
+	    if (user != null && user.isEnabled() && userDAO.verifyPassword(password, user.getPasswordHash(), user.getSalt())) {
 	        HttpSession session = request.getSession();
 	        session.setAttribute("user", user);
 	        session.setAttribute("successMessage", "ログインしました");

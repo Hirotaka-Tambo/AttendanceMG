@@ -8,20 +8,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-
-import jakarta.servlet.http.HttpServlet;
 
 import com.example.attendance.dto.User;
 import com.example.attendance.util.DBUtils;
 
-public class UserDAO extends HttpServlet {
-	private static final Map<String, User> users = new HashMap<>();
-	
-	
+public class UserDAO {
 	
 	// パスワードハッシュ化にソルトを追加する(セキュリティの強化)
 	public void addUser(User user,String plainPassword) {
@@ -57,6 +50,7 @@ public class UserDAO extends HttpServlet {
                     return new User(
                             rs.getString("username"),
                             rs.getString("password_hash"),
+                            rs.getString("salt"),
                             rs.getString("user_role"),
                             rs.getBoolean("enabled"));
                 }
@@ -69,29 +63,12 @@ public class UserDAO extends HttpServlet {
     }
 	
 	// パスワードの真偽検証
-	public boolean verifyPassword(String username, String password) {
-        String sql = "SELECT password_hash, salt, enabled FROM users WHERE username = ?";
-        try (Connection conn = DBUtils.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, username);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
-                    boolean enabled = rs.getBoolean("enabled");
-                    if (!enabled) {
-                        return false;
-                    }
-                    String storedHash = rs.getString("password_hash");
-                    String salt = rs.getString("salt");
-                    String hashedInputPassword = hashPassword(password, salt);
-                    return storedHash.equals(hashedInputPassword);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException("パスワードの検証に失敗しました。", e);
-        }
-        return false;
-    }
+	public boolean verifyPassword(String inputPassword, String storedHash, String storedSalt) {
+		String hashedInputPassword = hashPassword(inputPassword, storedSalt);
+		return storedHash.equals(hashedInputPassword);
+	}
+	
+	
 	
 	//全ユーザーの取得
 	public Collection<User> getAllUsers() {
@@ -104,6 +81,7 @@ public class UserDAO extends HttpServlet {
                 userList.add(new User(
                         rs.getString("username"),
                         rs.getString("password_hash"),
+                        rs.getString("salt"),
                         rs.getString("user_role"),
                         rs.getBoolean("enabled")));
             }
@@ -116,7 +94,7 @@ public class UserDAO extends HttpServlet {
 	
 	//ユーザー情報の更新
 	public void updateUser(User user) {
-		String sql = "UPDATE users SET user_role = ?, enbale = ? WHERE username = ?";
+		String sql = "UPDATE users SET user_role = ?, enabled = ? WHERE username = ?";
 		try (Connection connection = DBUtils.getConnection();
 			PreparedStatement pstmt = connection.prepareStatement(sql)){
 			pstmt.setString(1, user.getRole());
