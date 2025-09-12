@@ -169,5 +169,15 @@ public class UserDAO {
 				}
 			}
 	
+			// 一時的なメインメソッド
+			public static void main(String[] args) {
+			    UserDAO userDAO = new UserDAO();
+			    String password = "adminpass";
+			    String salt = "a20a7b4f-8b9f-4f6d-8a6c-5e4c2f1b8a5b"; // 任意のソルト。同じものを利用してください
+			    String hashedPassword = userDAO.hashPassword(password, salt);
+			    
+			    System.out.println("ソルト: " + salt);
+			    System.out.println("ハッシュ化されたパスワード: " + hashedPassword);
+			}
 
 }

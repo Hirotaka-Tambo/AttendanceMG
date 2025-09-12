@@ -49,7 +49,7 @@
   
   <p class="error-message"><c:out value ="${errorMessage}"/></p>
   
-  <a href="attendance?action=export_csv&filterUerId=<c:out value="${param.filterUserId}"/>&startDate=<c:out value="${param.startDate}"/>&endDate=<c:out value="${param.endDate}"/>" class="button">勤怠履歴をエクスポート</a>
+  <a href="attendance?action=export_csv&filterUserId=<c:out value="${param.filterUserId}"/>&startDate=<c:out value="${param.startDate}"/>&endDate=<c:out value="${param.endDate}"/>" class="button">勤怠履歴をエクスポート</a>
   
   <h3>勤怠サマリー(合計労働時間)</h3>
   <table class="summary-table">
