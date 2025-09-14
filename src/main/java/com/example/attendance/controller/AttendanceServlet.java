@@ -72,10 +72,10 @@ public class AttendanceServlet extends HttpServlet {
 			List<Attendance> allRecords = attendanceDAO.findFilteredRecords(filterUserId, startDate, endDate);
 			request.setAttribute("allAttendanceRecords", allRecords);
 			
-			// 管理者メニュー用のデータを取得
-			Map<String, Double> totalHoursByUser = attendanceDAO.getTotalWorkingHoursByUsers(startDate, endDate);
-			Map<String, Double> monthlyWorkingHours = attendanceDAO.getMonthlyWorkingHours(filterUserId);
-			Map<String, Long> monthlyCheckInCounts = attendanceDAO.getMonthlyCheckInCounts(filterUserId);
+			// 管理者メニュー用のデータを取得（フィルター対応）
+			Map<String, Double> totalHoursByUser = attendanceDAO.getTotalWorkingHoursByUsers(filterUserId, startDate, endDate);
+			Map<String, Double> monthlyWorkingHours = attendanceDAO.getMonthlyWorkingHours(filterUserId, startDate, endDate);
+			Map<String, Long> monthlyCheckInCounts = attendanceDAO.getMonthlyCheckInCounts(filterUserId, startDate, endDate);
 			
 			request.setAttribute("totalHoursByUser", totalHoursByUser);
 			request.setAttribute("monthlyWorkingHours", monthlyWorkingHours);

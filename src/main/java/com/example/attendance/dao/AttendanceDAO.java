@@ -117,12 +117,15 @@ public class AttendanceDAO {
         return records;
     }
 
-    // ユーザーごとの合計労働時間を取得する新しいメソッド
-    public Map<String, Double> getTotalWorkingHoursByUsers(LocalDate startDate, LocalDate endDate) {
+    // ユーザーごとの合計労働時間を取得する新しいメソッド（フィルター対応）
+    public Map<String, Double> getTotalWorkingHoursByUsers(String userId, LocalDate startDate, LocalDate endDate) {
         Map<String, Double> totalHours = new HashMap<>();
         StringBuilder sql = new StringBuilder("SELECT user_id, SUM(EXTRACT(EPOCH FROM (check_out_time - check_in_time)) / 3600) AS total_hours FROM attendance");
         sql.append(" WHERE check_out_time IS NOT NULL");
-
+        
+        if (userId != null && !userId.isEmpty()) {
+            sql.append(" AND user_id = ?");
+        }
         if (startDate != null) {
             sql.append(" AND DATE(check_in_time) >= ?");
         }
@@ -134,6 +137,9 @@ public class AttendanceDAO {
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
             int paramIndex = 1;
+            if (userId != null && !userId.isEmpty()) {
+                pstmt.setString(paramIndex++, userId);
+            }
             if (startDate != null) {
                 pstmt.setDate(paramIndex++, java.sql.Date.valueOf(startDate));
             }
@@ -152,8 +158,8 @@ public class AttendanceDAO {
         return totalHours;
     }
 
-    // 月ごとの合計労働時間を取得する新しいメソッド
-    public Map<String, Double> getMonthlyWorkingHours(String userId) {
+    // 月ごとの合計労働時間を取得する新しいメソッド（フィルター対応）
+    public Map<String, Double> getMonthlyWorkingHours(String userId, LocalDate startDate, LocalDate endDate) {
         Map<String, Double> monthlyHours = new HashMap<>();
         StringBuilder sql = new StringBuilder("SELECT to_char(check_in_time, 'YYYY-MM') AS month, SUM(EXTRACT(EPOCH FROM (check_out_time - check_in_time)) / 3600) AS total_hours FROM attendance");
         sql.append(" WHERE check_out_time IS NOT NULL");
@@ -161,12 +167,25 @@ public class AttendanceDAO {
         if (userId != null && !userId.isEmpty()) {
             sql.append(" AND user_id = ?");
         }
+        if (startDate != null) {
+            sql.append(" AND DATE(check_in_time) >= ?");
+        }
+        if (endDate != null) {
+            sql.append(" AND DATE(check_in_time) <= ?");
+        }
         sql.append(" GROUP BY month ORDER BY month");
 
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
+            int paramIndex = 1;
             if (userId != null && !userId.isEmpty()) {
-                pstmt.setString(1, userId);
+                pstmt.setString(paramIndex++, userId);
+            }
+            if (startDate != null) {
+                pstmt.setDate(paramIndex++, java.sql.Date.valueOf(startDate));
+            }
+            if (endDate != null) {
+                pstmt.setDate(paramIndex++, java.sql.Date.valueOf(endDate));
             }
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
@@ -180,8 +199,8 @@ public class AttendanceDAO {
         return monthlyHours;
     }
     
-    // 月ごとの出勤日数を取得する新しいメソッド
-    public Map<String, Long> getMonthlyCheckInCounts(String userId) {
+    // 月ごとの出勤日数を取得する新しいメソッド（フィルター対応）
+    public Map<String, Long> getMonthlyCheckInCounts(String userId, LocalDate startDate, LocalDate endDate) {
     	Map<String, Long> monthlyCounts = new HashMap<>();
         StringBuilder sql = new StringBuilder("SELECT to_char(check_in_time, 'YYYY-MM') AS month, COUNT(DISTINCT DATE(check_in_time)) AS daily_count FROM attendance");
         sql.append(" WHERE check_in_time IS NOT NULL");
@@ -189,12 +208,25 @@ public class AttendanceDAO {
         if (userId != null && !userId.isEmpty()) {
             sql.append(" AND user_id = ?");
         }
+        if (startDate != null) {
+            sql.append(" AND DATE(check_in_time) >= ?");
+        }
+        if (endDate != null) {
+            sql.append(" AND DATE(check_in_time) <= ?");
+        }
         sql.append(" GROUP BY month ORDER BY month");
 
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
+            int paramIndex = 1;
             if (userId != null && !userId.isEmpty()) {
-                pstmt.setString(1, userId);
+                pstmt.setString(paramIndex++, userId);
+            }
+            if (startDate != null) {
+                pstmt.setDate(paramIndex++, java.sql.Date.valueOf(startDate));
+            }
+            if (endDate != null) {
+                pstmt.setDate(paramIndex++, java.sql.Date.valueOf(endDate));
             }
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {

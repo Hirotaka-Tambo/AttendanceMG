@@ -70,7 +70,7 @@ public class UserServlet extends HttpServlet {
 				String role = request.getParameter("role");
 				
 				if (userDAO.findByUsername(username) == null) {
-					userDAO.addUser(username, password, role); // userDAOのメソッド呼び出しを修正
+					userDAO.addUser(username, password, role);
 					session.setAttribute("successMessage", "ユーザーを追加しました");
 				} else {
 					session.setAttribute("errorMessage", "ユーザーIDは既に存在します");
