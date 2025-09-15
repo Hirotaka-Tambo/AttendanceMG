@@ -11,8 +11,8 @@
 </head>
 <body>
   <div class="container">
-     <h1>従業員メニュー</h1>
-     <p>ようこそ、${user.username}さん</p>
+     <h1>従業員メニュー　/　Your Menu</h1>
+     <p>ようこそ、${user.username}さん　　/　　Welcome　${user.username}!!</p>
      
      <c:if test="${not empty sessionScope.successMessage}">
          <p class="success-message"><c:out value="${sessionScope.successMessage}"/></p>
@@ -21,26 +21,26 @@
      
      <div class="button-group">
         <c:if test="${latestRecord != null && latestRecord.checkOutTime == null}">
-            <form action="attendance" method="post" style="display:inline;">
+            <form action="attendance" method="post" class="inline-form">
                 <input type="hidden" name="action" value="check_out">
                 <input type="submit" value="退勤" class="button check-out">
             </form>
         </c:if>
         
         <c:if test="${latestRecord == null || latestRecord.checkOutTime != null}">
-            <form action="attendance" method="post" style="display:inline;">
+            <form action="attendance" method="post" class="inline-form">
                 <input type="hidden" name="action" value="check_in">
                 <input type="submit" value="出勤" class="button check-in">
             </form>
         </c:if>
      </div>
      
-     <h2>あなたの勤怠履歴</h2>
+     <h2>あなたの勤怠履歴　/　Your Attendance History</h2>
      <table>
         <thead>
            <tr>
-              <th>出勤時刻</th>
-              <th>退勤時刻</th>
+              <th>出勤時刻 /　Clock In</th>
+              <th>退勤時刻 / Clock Out</th>
            </tr>
         </thead>
         
@@ -51,14 +51,14 @@
                     <%
                        com.example.attendance.dto.Attendance currentAtt = (com.example.attendance.dto.Attendance) pageContext.getAttribute("att");
                        if (currentAtt.getCheckInTime() != null) {
-                           out.print(currentAtt.getCheckInTime().format(java.time.format.DateTimeFormatter.ofPattern("yyyy年MM月dd日 HH:mm:ss")));
+                           out.print(currentAtt.getCheckInTime().format(java.time.format.DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")));
                        }
                     %>
                  </td>
                  <td>
                     <%
                        if (currentAtt.getCheckOutTime() != null) {
-                           out.print(currentAtt.getCheckOutTime().format(java.time.format.DateTimeFormatter.ofPattern("yyyy年MM月dd日 HH:mm:ss")));
+                           out.print(currentAtt.getCheckOutTime().format(java.time.format.DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")));
                        }
                     %>
                  </td>
@@ -72,7 +72,7 @@
      </table>
      
      <div class="button-group">
-        <a href="logout" class="button secondary">ログアウト</a>
+        <a href="logout" class="button danger">ログアウト</a>
      </div>
      
   </div>

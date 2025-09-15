@@ -40,12 +40,29 @@ public class UserServlet extends HttpServlet {
 			request.setAttribute("errorMessage", errorMessage);
 			session.removeAttribute("errorMessage");
 		}
+
+        String script = (String) session.getAttribute("script");
+        if (script != null) {
+            request.setAttribute("script", script);
+            session.removeAttribute("script");
+        }
 		
 		if("list".equals(action) || action == null) {
 			Collection<User> users = userDAO.getAllUsers();
-			request.setAttribute("users", users);
-			RequestDispatcher rd = request.getRequestDispatcher("/jsp/user_manegement.jsp");
+			request.setAttribute("userList", users);
+			RequestDispatcher rd = request.getRequestDispatcher("/jsp/user_management.jsp");
 			rd.forward(request, response);
+		} else if ("edit_user".equals(action)) {
+            String username = request.getParameter("username");
+            User userToEdit = userDAO.findByUsername(username);
+            if (userToEdit != null) {
+                request.setAttribute("userToEdit", userToEdit);
+                RequestDispatcher rd = request.getRequestDispatcher("/jsp/edit_user.jsp");
+                rd.forward(request, response);
+            } else {
+                session.setAttribute("errorMessage", "編集対象のユーザーが見つかりませんでした。");
+                response.sendRedirect(request.getContextPath() + "/users?action=list");
+            }
 		} else {
 			response.sendRedirect(request.getContextPath() + "/users?action=list");
 		}
@@ -63,55 +80,51 @@ public class UserServlet extends HttpServlet {
 			return;
 		}
 		
+		String username = request.getParameter("username");
+		
 		try {
-			if ("add".equals(action)) {
-				String username = request.getParameter("username");
+			if ("add_user".equals(action)) {
 				String password = request.getParameter("password");
 				String role = request.getParameter("role");
 				
 				if (userDAO.findByUsername(username) == null) {
 					userDAO.addUser(username, password, role);
-					session.setAttribute("successMessage", "ユーザーを追加しました");
+					session.setAttribute("script", "alert('ユーザー「" + username + "」を追加しました。');");
 				} else {
-					session.setAttribute("errorMessage", "ユーザーIDは既に存在します");
+					session.setAttribute("errorMessage", "ユーザーIDは既に存在します。");
 				}
 				
-			} else if ("update".equals(action)) {
-				String username = request.getParameter("username");
-				String role = request.getParameter("role");
-				boolean enabled = request.getParameter("enabled") != null;
-				
-				User existingUser = userDAO.findByUsername(username);
-				
-				if (existingUser != null) {
-					existingUser.setRole(role);
-					existingUser.setEnabled(enabled);
-					userDAO.updateUser(existingUser);
-					session.setAttribute("successMessage", "ユーザー情報を更新しました");
-				}
-				
-			} else if ("delete".equals(action)) {
-				String username = request.getParameter("username");
+			} else if ("update_user".equals(action)) {
+                String role = request.getParameter("role");
+                
+                User existingUser = userDAO.findByUsername(username);
+
+                if (existingUser != null) {
+                    existingUser.setRole(role);
+                    userDAO.updateUser(existingUser);
+                    session.setAttribute("script", "alert('ユーザー「" + username + "」の役割を更新しました。');");
+                } else {
+                    session.setAttribute("errorMessage", "ユーザーが見つかりませんでした。");
+                }
+            } else if ("reset_password".equals(action)) {
+                String newPassword = request.getParameter("newPassword");
+                
+                userDAO.resetPassword(username, newPassword);
+                session.setAttribute("script", "alert('ユーザー「" + username + "」のパスワードをリセットしました。');");
+            } else if ("delete_user".equals(action)) {
 				userDAO.deleteUser(username);
-				session.setAttribute("successMessage", "ユーザーを削除しました");
-				
-			} else if ("reset_password".equals(action)) {
-				String username = request.getParameter("username");
-				String newPassword = request.getParameter("newPassword");
-				userDAO.resetPassword(username, newPassword);
-				session.setAttribute("successMessage", username + "のパスワードをリセットしました。(デフォルトパスワード:" + newPassword + ")");
-				
-			} else if ("toggle_enabled".equals(action)) {
-				String username = request.getParameter("username");
-				boolean enabled = "true".equals(request.getParameter("enabled"));
-				userDAO.toggleUserEnabled(username, enabled);
-				session.setAttribute("successMessage", username + "のアカウントを" + (enabled ? "有効" : "無効") + "にしました。");
+				session.setAttribute("script", "alert('ユーザー「" + username + "」を削除しました。');");
 			}
 			
 		} catch (Exception e) {
+			e.printStackTrace();
 			session.setAttribute("errorMessage", "操作中にエラーが発生しました: " + e.getMessage());
 		}
 		
-		response.sendRedirect(request.getContextPath() + "/users?action=list");
+		if ("update_user".equals(action) || "reset_password".equals(action)) {
+			response.sendRedirect(request.getContextPath() + "/users?action=edit_user&username=" + username);
+		} else {
+			response.sendRedirect(request.getContextPath() + "/users?action=list");
+		}
 	}
 }

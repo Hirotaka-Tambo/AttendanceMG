@@ -104,14 +104,6 @@ input[type="submit"]:hover,
 	transform:translateY(-2px);
 }
 
-.butotn.secondary{
-	background-color: #6c757d;
-}
-
-.butotn.secondary:hoverer{
-	background-color: #5a6268;
-}
-
 .button.danger{
 	background-color: #dc3545;
 }
@@ -209,6 +201,7 @@ flex: 1;
 .search-sort-form select {
     width: 100%;
 }
+
 .filter-form button,
 .search-sort-form button {
     flex-shrink: 0;
@@ -236,13 +229,16 @@ flex: 1;
     gap: 15px;
     align-items: center;
 }
+
 .user-form .button-group {
     grid-column: 1 / 3;
 }
+
 .main-nav {
     text-align: center;
     margin-bottom: 30px;
 }
+
 .main-nav a {
     background-color: #34495e;
     color: white;
@@ -257,5 +253,19 @@ flex: 1;
     background-color: #2c3e50;
 }
 
+/*出勤ボタン&退勤ボタン*/
+input.button.check-in {
+    background-color: #28a745;   
+}
 
+input.button.check-in:hover {
+    background-color: #218838;   
+}
 
+input.button.check-out {
+    background-color: #dc3545;   
+}
+
+input.button.check-out:hover {
+    background-color: #c82333;   
+}
