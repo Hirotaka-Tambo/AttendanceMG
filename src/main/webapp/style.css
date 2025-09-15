@@ -286,10 +286,11 @@ flex: 1;
     display: flex;
     align-items: flex-end;
     justify-content: flex-start;
-    height: 150px;
     border-bottom: 1px solid #ccc;
     padding-bottom: 10px;
 	margin-top: 40px;
+	position: relative;
+	height: 200px;
 }
 
 .bar-container {
@@ -299,6 +300,7 @@ flex: 1;
     position: relative;
     width: 50px;
     margin: 0 10px;
+	height: 100%;
 }
 
 .bar {
@@ -315,20 +317,51 @@ flex: 1;
     background-color: #28a745;
 }
 
+.bar-chart .bar-container .bar {
+    width: 35px !important; /* 幅を固定 */
+    min-height: 5px; /* 最小の高さを設定 */
+    transition: height 0.5s ease;
+    border-radius: 3px 3px 0 0;
+    padding: 0 !important; /* buttonのpaddingを無効化 */
+    margin: 0 !important; /* buttonのmarginを無効化 */
+    border: none !important; /* buttonのborderを無効化 */
+    position: relative;
+}
+
+.bar-chart .bar-container .hour-bar {
+    background: linear-gradient(to top, #0056b3, #007bff);
+    box-shadow: 0 2px 4px rgba(0,123,255,0.3);
+}
+
+.bar-chart .bar-container .count-bar {
+    background: linear-gradient(to top, #1e7e34, #28a745);
+    box-shadow: 0 2px 4px rgba(40,167,69,0.3);
+}
+
 .bar-container .value {
-    position: absolute;
-    top: -20px;
-    font-size: 0.8em;
-    font-weight: bold;
-    color: #333;
-    white-space: nowrap;
+	position: absolute;
+	bottom: 100%;
+	margin-bottom: 5px;
+	font-size: 0.75em;
+	font-weight: bold;
+	color: #333;
+	white-space: nowrap;
+	background-color: rgba(255,255,255,0.9);
+	padding: 2px 4px;
+	border-radius: 3px;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .bar-container .label {
-    margin-top: 5px;
-    font-size: 0.7em;
-    color: #555;
-    text-align: center;
+	position: absolute;
+	top: 100%;
+	margin-top: 8px;
+	font-size: 0.7em;
+	color: #666;
+	text-align: center;
+	width: 60px;
+	left: 50%;
+	transform: translateX(-50%);
 }
 
 .no-data {

@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -75,11 +76,49 @@ public class AttendanceServlet extends HttpServlet {
 			request.setAttribute("monthlyWorkingHours", monthlyWorkingHours);
 			request.setAttribute("monthlyCheckInCounts", monthlyCheckInCounts);
 			
-			double maxHours = monthlyWorkingHours.values().stream().mapToDouble(Double::doubleValue).max().orElse(0.0);
-			long maxCount = monthlyCheckInCounts.values().stream().mapToLong(Long::longValue).max().orElse(0L);
+			double maxHours = monthlyWorkingHours.values().stream().mapToDouble(Double::doubleValue).max().orElse(1.0);
+			long maxCount = monthlyCheckInCounts.values().stream().mapToLong(Long::longValue).max().orElse(1L);
 
 			request.setAttribute("maxHours", maxHours);
 			request.setAttribute("maxCount", maxCount);
+			
+			// 標準値を定義
+			double standardHours = 160.0; // 月間標準労働時間
+			long standardDays = 20L;      // 月間標準出勤日数
+
+			// パーセンテージ計算用のマップを作成
+			Map<String, Double> hoursPercentage = new HashMap<>();
+			Map<String, Double> daysPercentage = new HashMap<>();
+
+			for (Map.Entry<String, Double> entry : monthlyWorkingHours.entrySet()) {
+			    double percentage = (entry.getValue() / standardHours) * 100;
+			    hoursPercentage.put(entry.getKey(), percentage);
+			}
+
+			for (Map.Entry<String, Long> entry : monthlyCheckInCounts.entrySet()) {
+			    double percentage = (entry.getValue().doubleValue() / standardDays) * 100;
+			    daysPercentage.put(entry.getKey(), percentage);
+			}
+
+			// JSPに送信
+			request.setAttribute("hoursPercentage", hoursPercentage);
+			request.setAttribute("daysPercentage", daysPercentage);
+			request.setAttribute("standardHours", standardHours);
+			request.setAttribute("standardDays", standardDays);
+
+			// デバッグ出力
+			System.out.println("労働時間パーセンテージ: " + hoursPercentage);
+			System.out.println("出勤日数パーセンテージ: " + daysPercentage);
+			
+			// 各月の計算された高さも出力
+			for (Map.Entry<String, Double> entry : monthlyWorkingHours.entrySet()) {
+			    double height = maxHours > 0 ? (entry.getValue() / maxHours) * 150 : 5;
+			    
+			    // コンソール上の処理(デバッグ用)
+			    System.out.println("月: " + entry.getKey() + ", 時間: " + entry.getValue() + ", 計算高さ: " + height + "px");
+			}
+			
+			
 
 			request.setAttribute("userList", userDAO.getAllUsers());
 			
@@ -87,6 +126,7 @@ public class AttendanceServlet extends HttpServlet {
 			rd.forward(request, response);
 			
 		} else { // 従業員ユーザーの場合
+			String userId = user.getUsername();
 			List<Attendance> userRecords = attendanceDAO.findByUserId(user.getUsername());
 			
 			// 最新の勤怠記録を取得
@@ -95,12 +135,48 @@ public class AttendanceServlet extends HttpServlet {
 				latestRecord = userRecords.get(0);
 			}
 			
+			// グラフの表示期間を定義（例：直近6ヶ月）
+	        LocalDate endDate = LocalDate.now();
+	        // 6ヶ月前の月の1日を開始日とする
+	        LocalDate startDate = endDate.minusMonths(5).withDayOfMonth(1); 
+			
+			// 従業員メニュー用のデータを取得（グラフ用）
+		    Map<String, Double> monthlyWorkingHours = attendanceDAO.getMonthlyWorkingHours(userId, startDate, endDate);
+		    Map<String, Long> monthlyCheckInCounts = attendanceDAO.getMonthlyCheckInCounts(userId, startDate, endDate);
+		    
+		    // 標準値を定義
+		    double standardHours = 160.0;
+		    long standardDays = 20L;
+			
+			// パーセンテージ計算用のマップを作成
+		    Map<String, Double> hoursPercentage = new HashMap<>();
+		    Map<String, Double> daysPercentage = new HashMap<>();
+		    
+		    for (Map.Entry<String, Double> entry : monthlyWorkingHours.entrySet()) {
+		        double percentage = (entry.getValue() / standardHours) * 100;
+		        hoursPercentage.put(entry.getKey(), percentage);
+		    }
+		    
+		    for (Map.Entry<String, Long> entry : monthlyCheckInCounts.entrySet()) {
+		        double percentage = (entry.getValue().doubleValue() / standardDays) * 100;
+		        daysPercentage.put(entry.getKey(), percentage);
+		    }
+			
 			request.setAttribute("attendanceRecords", userRecords);
 			request.setAttribute("latestRecord", latestRecord);
+			
+			// グラフデータをJSPに送信
+		    request.setAttribute("monthlyWorkingHours", monthlyWorkingHours);
+		    request.setAttribute("monthlyCheckInCounts", monthlyCheckInCounts);
+		    request.setAttribute("hoursPercentage", hoursPercentage);
+		    request.setAttribute("daysPercentage", daysPercentage);
+		    request.setAttribute("standardHours", standardHours);
+		    request.setAttribute("standardDays", standardDays);
 			
 			RequestDispatcher rd = request.getRequestDispatcher("/jsp/employee_menu.jsp");
 			rd.forward(request, response);
 		}
+		
 	}
 	
 	@Override

@@ -69,57 +69,52 @@
             </c:if>
         </tbody>
     </table>
-
-    <c:set var="maxHours" value="0"/>
-    <c:forEach var="entry" items="${monthlyWorkingHours}">
-        <c:if test="${entry.value > maxHours}">
-            <c:set var="maxHours" value="${entry.value}"/>
-        </c:if>
-    </c:forEach>
-
-    <c:set var="maxCount" value="0"/>
-    <c:forEach var="entry" items="${monthlyCheckInCounts}">
-        <c:if test="${entry.value > maxCount}">
-            <c:set var="maxCount" value="${entry.value}"/>
-        </c:if>
-    </c:forEach>
     
-   <h3>月別勤怠グラフ</h3>
-    <div style="display: flex; gap: 40px; justify-content: center;">
-        <div>
-            
-            <div class="bar-chart" style="height: 150px;">
-                <c:forEach var="entry" items="${monthlyWorkingHours}">
-                   <div class="bar-container">
-                       <div class="bar hour-bar" style="height: ${maxHours > 0 ? (entry.value / maxHours) * 150 : 0}px;"></div>
-                       <span class="value"><fmt:formatNumber value="${entry.value}" pattern="0.00" />時間</span>
-                       <span class="label">${entry.key}</span>
-                    </div>
-                </c:forEach>
-                <c:if test="${empty monthlyWorkingHours}">データがありません。</c:if>
-            </div>
-            <h4>月別労働時間</h4>
-        </div>
-
-        <div>
-            <div class="bar-chart" style="height: 150px;">
-                <c:forEach var="entry" items="${monthlyCheckInCounts}">
-                   <div class="bar-container">
-                       <div class="bar count-bar" style="height: ${maxCount > 0 ? (entry.value / maxCount) * 150 : 0}px;"></div>
-                       <span class="value">${entry.value}日</span>
-                       <span class="label">${entry.key}</span>
-                    </div>
-                </c:forEach>
-                <c:if test="${empty monthlyCheckInCounts}">データがありません。</c:if>
-            </div>
-            <h4>月別出勤日数</h4>
+    <h3>月別勤怠グラフ</h3>
+<div class="chart-container">
+    <div class="chart-section">
+        <h4>月別労働時間（標準: ${standardHours}時間/1人）</h4>
+        <div class="bar-chart">
+            <c:forEach var="entry" items="${monthlyWorkingHours}">
+               <div class="bar-container">
+                   <!-- 固定の標準値（160時間）を基準に高さを計算 -->
+                   <div class="bar hour-bar" 
+                        style="height: ${(entry.value / standardHours) * 150}px;"></div>
+                   <span class="value">
+                       <fmt:formatNumber value="${entry.value}" pattern="0.0" />h<br>
+                       <small>(<fmt:formatNumber value="${hoursPercentage[entry.key]}" pattern="0" />%)</small>
+                   </span>
+                   <span class="label">${entry.key}</span>
+                </div>
+            </c:forEach>
+            <c:if test="${empty monthlyWorkingHours}">
+                <div class="no-data">データがありません。</div>
+            </c:if>
         </div>
     </div>
-    
-    <c:if test="${empty monthlyWorkingHours and empty monthlyCheckInCounts}">
-        <div class="no-data">データがありません。</div>
-    </c:if>
 
+    <div class="chart-section">
+        <h4>月別出勤日数（標準: ${standardDays}日/1人）</h4>
+        <div class="bar-chart">
+            <c:forEach var="entry" items="${monthlyCheckInCounts}">
+               <div class="bar-container">
+                   <!-- 固定の標準値（20日）を基準に高さを計算 -->
+                   <div class="bar count-bar" 
+                        style="height: ${(entry.value / standardDays) * 150}px;"></div>
+                   <span class="value">
+                       ${entry.value}日<br>
+                       <small>(<fmt:formatNumber value="${daysPercentage[entry.key]}" pattern="0" />%)</small>
+                   </span>
+                   <span class="label">${entry.key}</span>
+                </div>
+            </c:forEach>
+            <c:if test="${empty monthlyCheckInCounts}">
+                <div class="no-data">データがありません。</div>
+            </c:if>
+        </div>
+    </div>
+</div>
+   
     <h3>詳細勤怠履歴</h3>
     <table>
         <thead>

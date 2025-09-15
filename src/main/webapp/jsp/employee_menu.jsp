@@ -35,14 +35,14 @@ function handleLogout() {
      
      <div class="button-group">
         <c:if test="${latestRecord != null && latestRecord.checkOutTime == null}">
-            <form action="attendance" method="post" class="inline-form" onsubmit="return confirm('退勤しますか？\nClock in?');">
+            <form action="attendance" method="post" class="inline-form" onsubmit="return confirm('退勤しますか？\nClock out?');">
                 <input type="hidden" name="action" value="check_out">
                 <input type="submit" value="退勤　/　Check Out" class="button check-out">
             </form>
         </c:if>
         
         <c:if test="${latestRecord == null || latestRecord.checkOutTime != null}">
-            <form action="attendance" method="post" class="inline-form" onsubmit="return confirm('出勤しますか？\nClock out?');">
+            <form action="attendance" method="post" class="inline-form" onsubmit="return confirm('出勤しますか？\nClock in?');">
                 <input type="hidden" name="action" value="check_in">
                 <input type="submit" value="出勤　/　Check In" class="button check-in">
             </form>
@@ -84,6 +84,49 @@ function handleLogout() {
            </c:if>
         </tbody>
      </table>
+     
+     <h3>月別勤怠グラフ</h3>
+    <div class="chart-container">
+        <div class="chart-section">
+            <h4>月別労働時間（標準: ${standardHours}時間/1人）</h4>
+            <div class="bar-chart">
+                <c:forEach var="entry" items="${monthlyWorkingHours}">
+                   <div class="bar-container">
+                       <div class="bar hour-bar" 
+                            style="height: ${entry.value > standardHours ? 150 : (entry.value / standardHours) * 150}px;"></div>
+                       <span class="value">
+                           <fmt:formatNumber value="${entry.value}" pattern="0.0" />h<br>
+                           <small>(<fmt:formatNumber value="${hoursPercentage[entry.key]}" pattern="0" />%)</small>
+                       </span>
+                       <span class="label">${entry.key}</span>
+                    </div>
+                </c:forEach>
+                <c:if test="${empty monthlyWorkingHours}">
+                    <div class="no-data">データがありません。</div>
+                </c:if>
+            </div>
+        </div>
+
+        <div class="chart-section">
+            <h4>月別出勤日数（標準: ${standardDays}日/1人）</h4>
+            <div class="bar-chart">
+                <c:forEach var="entry" items="${monthlyCheckInCounts}">
+                   <div class="bar-container">
+                       <div class="bar count-bar" 
+                            style="height: ${entry.value > standardDays ? 150 : (entry.value / standardDays) * 150}px;"></div>
+                       <span class="value">
+                           ${entry.value}日<br>
+                           <small>(<fmt:formatNumber value="${daysPercentage[entry.key]}" pattern="0" />%)</small>
+                       </span>
+                       <span class="label">${entry.key}</span>
+                    </div>
+                </c:forEach>
+                <c:if test="${empty monthlyCheckInCounts}">
+                    <div class="no-data">データがありません。</div>
+                </c:if>
+            </div>
+        </div>
+    </div>
      
      <div class="button-group">
         <a href="logout" class="button danger" onclick="return handleLogout();">ログアウト</a>
