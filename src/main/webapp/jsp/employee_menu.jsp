@@ -40,7 +40,7 @@
         <thead>
            <tr>
               <th>出勤時刻 /　Clock In</th>
-              <th>退勤時刻 / Clock Out</th>
+              <th>退勤時刻 /　Clock Out</th>
            </tr>
         </thead>
         

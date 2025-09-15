@@ -16,7 +16,7 @@
       <div class="main-nav">
          <a href="attendance?action=filter">勤怠履歴管理</a>
          <a href="users?action=list">ユーザー管理</a>
-         <a href="logout">ログアウト</a>
+         <a href="logout" class="danger">ログアウト</a>
       </div>
       
       <c:if test="${not empty successMessage}">
