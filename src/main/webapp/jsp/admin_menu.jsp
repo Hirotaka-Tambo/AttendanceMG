@@ -8,6 +8,22 @@
 <meta charset="UTF-8">
 <title>管理者メニュー</title>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/style.css">
+<script>
+　　window.onload = function() {
+    // セッションスコープに "script" という名前の属性があるかチェック
+    var script = "${sessionScope.script}";
+    if (script && script.trim() !== "") {
+        // alert()を実行
+        eval(script);
+        // alert()の実行後、セッションから属性を削除
+        <c:remove var="script" scope="session"/>
+    }
+};
+
+    function handleLogout() {
+        return confirm('ログアウトしますか？');
+    }
+</script>
 </head>
 <body>
 <div class="container">
@@ -17,7 +33,7 @@
     <div class="main-nav">
         <a href="attendance?action=filter">勤怠履歴管理</a>
         <a href="users?action=list">ユーザー管理</a>
-        <a href="logout" class="danger">ログアウト</a>
+        <a href="logout" class="danger" onclick="return handleLogout();">ログアウト</a>
     </div>
 
     <c:if test="${not empty sessionScope.successMessage}">
@@ -161,11 +177,11 @@
             <input type="datetime-local" id="manualCheckInTime" name="checkInTime" required>
         </p>
         <p>
-            <label for="manualCheckOutTime">退勤時刻 (任意):</label>
+            <label for="manualCheckOutTime">退勤時刻:</label>
             <input type="datetime-local" id="manualCheckOutTime" name="checkOutTime">
         </p>
         <div class="button-group">
-            <input type="submit" value="追加">
+            <input type="submit" value="追加" onclick="return confirm('この内容で勤怠記録を追加しますか？');">
         </div>
     </form>
 </div>

@@ -9,6 +9,15 @@
 <title>従業員メニュー</title>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/style.css">
 <script>
+window.onload = function() {
+    var script = "${sessionScope.script}";
+    if (script && script.trim() !== "") {
+        eval(script);
+        // ダイアログ表示後、メッセージが残らないようにセッションから削除
+        <c:remove var="script" scope="session"/>
+    }
+};
+
 function handleLogout() {
     // JSPのC:ifタグを使って、サーバーサイドから未退勤情報を取得する
     var isCheckedIn = <c:if test="${latestRecord != null && latestRecord.checkOutTime == null}">true</c:if><c:if test="${latestRecord == null || latestRecord.checkOutTime != null}">false</c:if>;

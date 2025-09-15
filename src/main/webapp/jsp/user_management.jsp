@@ -7,6 +7,16 @@
 <meta charset="UTF-8">
 <title>ユーザー管理</title>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/style.css">
+<script>
+    window.onload = function() {
+        var script = "${sessionScope.script}";
+        if (script && script.trim() !== "") {
+            eval(script);
+            // ダイアログ表示後、メッセージが残らないようにセッションから削除
+            <c:remove var="script" scope="session"/>
+        }
+    };
+</script>
 </head>
 <body>
    <div class="container">
