@@ -8,6 +8,20 @@
 <meta charset="UTF-8">
 <title>従業員メニュー</title>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/style.css">
+<script>
+function handleLogout() {
+    // JSPのC:ifタグを使って、サーバーサイドから未退勤情報を取得する
+    var isCheckedIn = <c:if test="${latestRecord != null && latestRecord.checkOutTime == null}">true</c:if><c:if test="${latestRecord == null || latestRecord.checkOutTime != null}">false</c:if>;
+
+    if (isCheckedIn) {
+        // 未退勤の場合、警告ダイアログを表示
+        return confirm('退勤していませんが、ログアウトしますか？\nAre you sure you want to log out without clocking out?');
+    } else {
+        // 退勤済みの場合、通常の確認ダイアログを表示
+        return confirm('ログアウトしますか？\nLog out?');
+    }
+}
+</script>
 </head>
 <body>
   <div class="container">
@@ -21,16 +35,16 @@
      
      <div class="button-group">
         <c:if test="${latestRecord != null && latestRecord.checkOutTime == null}">
-            <form action="attendance" method="post" class="inline-form">
+            <form action="attendance" method="post" class="inline-form" onsubmit="return confirm('退勤しますか？\nClock in?');">
                 <input type="hidden" name="action" value="check_out">
-                <input type="submit" value="退勤" class="button check-out">
+                <input type="submit" value="退勤　/　Check Out" class="button check-out">
             </form>
         </c:if>
         
         <c:if test="${latestRecord == null || latestRecord.checkOutTime != null}">
-            <form action="attendance" method="post" class="inline-form">
+            <form action="attendance" method="post" class="inline-form" onsubmit="return confirm('出勤しますか？\nClock out?');">
                 <input type="hidden" name="action" value="check_in">
-                <input type="submit" value="出勤" class="button check-in">
+                <input type="submit" value="出勤　/　Check In" class="button check-in">
             </form>
         </c:if>
      </div>
@@ -72,8 +86,8 @@
      </table>
      
      <div class="button-group">
-        <a href="logout" class="button danger">ログアウト</a>
-     </div>
+        <a href="logout" class="button danger" onclick="return handleLogout();">ログアウト</a>
+    </div>
      
   </div>
 </body>

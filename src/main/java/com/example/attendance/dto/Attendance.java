@@ -1,6 +1,7 @@
 package com.example.attendance.dto;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class Attendance {
     private int id;
@@ -69,5 +70,21 @@ public class Attendance {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+    
+    //グラフ用の取得
+    
+    public String getCheckInTimeStr() {
+        if (this.checkInTime != null) {
+            return this.checkInTime.format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"));
+        }
+        return "-";
+    }
+
+    public String getCheckOutTimeStr() {
+        if (this.checkOutTime != null) {
+            return this.checkOutTime.format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"));
+        }
+        return "-";
     }
 }

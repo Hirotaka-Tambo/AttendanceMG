@@ -35,43 +35,44 @@
           <c:remove var="script" scope="session"/>
       </c:if>
       
-     <h2>ユーザー一覧</h2> 
-     <table>
-        <thead>
-            <tr>
-                <th>ユーザーID</th>
-                <th>役割</th>
-                <th>アクション</th>
-            </tr>
-        </thead>
-        <tbody>
-            <c:forEach var="u" items="${userList}">
-            <tr>
-                <td>${u.username}</td>
-                <td>
+    <h2>従業員一覧</h2> 
+    <table class="table">
+       <thead>
+        <tr>
+            <th>従業員ID</th>
+            <th>役割</th>
+            <th>アクション</th>
+        </tr>
+       </thead>
+       <tbody>
+          <c:forEach var="u" items="${userList}">
+          <tr>
+            <td>${u.username}</td>
+            <td>
                 <c:choose>
                    <c:when test="${u.role == 'admin'}">管理者</c:when>
                    <c:when test="${u.role == 'employee'}">従業員</c:when>
                    <c:otherwise>${u.role}</c:otherwise>
-                   </c:choose>
-                </td>
-                <td>
-                   <form action="users" method="get" style="display:inline;">
-                      <input type="hidden" name="action" value="edit_user">
-                      <input type="hidden" name="username" value="${u.username}">
-                      <input type="submit" value="編集" class="button">
-                   </form>
-                   
-                    <form action="users" method="post" style="display:inline;">
-                        <input type="hidden" name="action" value="delete_user">
-                        <input type="hidden" name="username" value="${u.username}">
-                        <input type="submit" value="削除" class="button danger" onclick="return confirm('本当にこのユーザーを削除しますか？');">
-                    </form>
-                </td>
-            </tr>
-            </c:forEach>
+                </c:choose>
+            </td>
+            <td class="table-actions">
+               <form action="users" method="get">
+                  <input type="hidden" name="action" value="edit_user">
+                  <input type="hidden" name="username" value="${u.username}">
+                  <input type="submit" value="編集" class="button">
+               </form>
+               
+                <form action="users" method="post" onsubmit="return confirm('本当にこのユーザーを削除しますか？');">
+                    <input type="hidden" name="action" value="delete_user">
+                    <input type="hidden" name="username" value="${u.username}">
+                    <input type="submit" value="削除" class="button danger">
+                </form>
+            </td>
+          </tr>
+          </c:forEach>
         </tbody>
-    </table>
+      </table>
+    
     
     <h2>ユーザー追加</h2>
     <form action="users" method="post" onsubmit="return confirm('このユーザーを追加しますか?');">

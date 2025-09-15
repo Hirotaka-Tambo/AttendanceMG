@@ -38,12 +38,6 @@ public class AttendanceServlet extends HttpServlet {
 			return;
 		}
 		
-		String successMessage = (String) session.getAttribute("successMessage");
-		if (successMessage != null) {
-			request.setAttribute("successMessage", successMessage);
-			session.removeAttribute("successMessage");
-		}
-		
 		String action = request.getParameter("action");
 		
 		if ("export_csv".equals(action) && "admin".equals(user.getRole())) {
@@ -80,13 +74,19 @@ public class AttendanceServlet extends HttpServlet {
 			request.setAttribute("totalHoursByUser", totalHoursByUser);
 			request.setAttribute("monthlyWorkingHours", monthlyWorkingHours);
 			request.setAttribute("monthlyCheckInCounts", monthlyCheckInCounts);
+			
+			double maxHours = monthlyWorkingHours.values().stream().mapToDouble(Double::doubleValue).max().orElse(0.0);
+			long maxCount = monthlyCheckInCounts.values().stream().mapToLong(Long::longValue).max().orElse(0L);
+
+			request.setAttribute("maxHours", maxHours);
+			request.setAttribute("maxCount", maxCount);
 
 			request.setAttribute("userList", userDAO.getAllUsers());
 			
 			RequestDispatcher rd = request.getRequestDispatcher("/jsp/admin_menu.jsp");
 			rd.forward(request, response);
 			
-		} else { // 従業員ユーザーの場合の処理を修正
+		} else { // 従業員ユーザーの場合
 			List<Attendance> userRecords = attendanceDAO.findByUserId(user.getUsername());
 			
 			// 最新の勤怠記録を取得
@@ -96,7 +96,7 @@ public class AttendanceServlet extends HttpServlet {
 			}
 			
 			request.setAttribute("attendanceRecords", userRecords);
-			request.setAttribute("latestRecord", latestRecord); // ★この行を追加
+			request.setAttribute("latestRecord", latestRecord);
 			
 			RequestDispatcher rd = request.getRequestDispatcher("/jsp/employee_menu.jsp");
 			rd.forward(request, response);
@@ -119,17 +119,17 @@ public class AttendanceServlet extends HttpServlet {
 		try {
 			if ("check_in".equals(action)) {
 				attendanceDAO.checkIn(user.getUsername());
-				session.setAttribute("successMessage", "出勤を記録しました");
+				session.setAttribute("script", "alert('出勤を記録しました');");
 			
 			} else if ("check_out".equals(action)) {
 				attendanceDAO.checkOut(user.getUsername());
-				session.setAttribute("successMessage", "退勤を記録しました");
+				session.setAttribute("script", "alert('退勤を記録しました');");
 			
 			} else if ("add_manual".equals(action) && "admin".equals(user.getRole())) {
 				LocalDateTime checkIn = LocalDateTime.parse(request.getParameter("checkInTime"));
 				LocalDateTime checkOut = request.getParameter("checkOutTime") != null && !request.getParameter("checkOutTime").isEmpty() ? LocalDateTime.parse(request.getParameter("checkOutTime")) : null;
 				attendanceDAO.addManualAttendance(targetUserId, checkIn, checkOut);
-				session.setAttribute("successMessage", "勤怠記録を手動で追加しました");
+				session.setAttribute("script", "alert('勤怠記録を手動で追加しました。');");
 			
 			} else if ("update_manual".equals(action) && "admin".equals(user.getRole())) {
 				LocalDateTime oldCheckIn = LocalDateTime.parse(request.getParameter("oldCheckInTime"));
@@ -138,28 +138,32 @@ public class AttendanceServlet extends HttpServlet {
 				LocalDateTime newCheckOut = request.getParameter("newCheckOutTime") != null && !request.getParameter("newCheckOutTime").isEmpty() ? LocalDateTime.parse(request.getParameter("newCheckOutTime")) : null;
 				
 				if (attendanceDAO.updateManualAttendance(targetUserId, oldCheckIn, oldCheckOut, newCheckIn, newCheckOut)) {
-					session.setAttribute("successMessage", "勤怠記録を手動で更新しました");
+					session.setAttribute("script", "alert('勤怠記録を手動で更新しました。');");
 				} else {
-					session.setAttribute("errorMessage", "勤怠記録の更新に失敗しました");
+					session.setAttribute("script", "alert('勤怠記録の更新に失敗しました。');");
 				}
 			} else if ("delete_manual".equals(action) && "admin".equals(user.getRole())) {
 				LocalDateTime checkIn = LocalDateTime.parse(request.getParameter("checkInTime"));
 				LocalDateTime checkOut = request.getParameter("checkOutTime") != null && !request.getParameter("checkOutTime").isEmpty() ? LocalDateTime.parse(request.getParameter("checkOutTime")) : null;
 				
 				if (attendanceDAO.deleteManualAttendance(targetUserId, checkIn, checkOut)) {
-					session.setAttribute("successMessage", "勤怠記録を削除しました");
+					session.setAttribute("script", "alert('勤怠記録を削除しました。');");
 				} else {
-					session.setAttribute("errorMessage", "勤怠記録の削除に失敗しました");
+					session.setAttribute("script", "alert('勤怠記録の削除に失敗しました。');");
 				}
 			}
 		} catch (DateTimeParseException e) {
-			session.setAttribute("errorMessage", "日付/時刻の形式が不正です。");
+			session.setAttribute("script", "alert('日付/時刻の形式が不正です。');");
 		} catch (Exception e) {
-			session.setAttribute("errorMessage", "操作中にエラーが発生しました: " + e.getMessage());
+			session.setAttribute("script", "alert('操作中にエラーが発生しました: ' + e.getMessage() + '');");
 		}
 		
-		// 処理後に doGet() を呼び出すことで、JSPに最新の勤怠情報を反映させる
-		doGet(request, response);
+		// ユーザーの役割に基づいてリダイレクト先を振り分ける
+		if ("admin".equals(user.getRole())) {
+		    response.sendRedirect(request.getContextPath() + "/attendance?action=filter");
+		} else {
+		    response.sendRedirect(request.getContextPath() + "/attendance");
+		}
 	}
 	
 	private void exportCsv(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -197,5 +201,7 @@ public class AttendanceServlet extends HttpServlet {
 				record.getCheckOutTime() != null ? record.getCheckOutTime().format(formatter) : ""));
 		}
 		writer.flush();
+		
 	}
+	
 }

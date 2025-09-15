@@ -1,6 +1,5 @@
 @charset "UTF-8";
 
-
 body{
 	font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 	margin: 0;
@@ -259,6 +258,83 @@ flex: 1;
 
 .main-nav a.danger:hover{
 	background-color: #c82333;
+}
+
+/*管理者画面グラフ*/
+/* グラフ全体を横並びにするコンテナ */
+.chart-container {
+    display: flex;
+	justify-content: space-around;
+    padding: 20px 0;
+}
+
+/* 左右のグラフセクション */
+.chart-section {
+    flex: 1;
+    max-width: 45%;
+    text-align: center;
+    margin: 0 10px;
+}
+
+/* グラフのタイトル */
+.chart-section h4 {
+    margin-bottom: 10px;
+}
+
+/* 棒グラフのコンテナ */
+.bar-chart {
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-start;
+    height: 150px;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 10px;
+	margin-top: 40px;
+}
+
+.bar-container {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    position: relative;
+    width: 50px;
+    margin: 0 10px;
+}
+
+.bar {
+    width: 100%;
+    transition: height 0.5s ease;
+    border-radius: 5px 5px 0 0;
+}
+
+.hour-bar {
+    background-color: #007bff;
+}
+
+.count-bar {
+    background-color: #28a745;
+}
+
+.bar-container .value {
+    position: absolute;
+    top: -20px;
+    font-size: 0.8em;
+    font-weight: bold;
+    color: #333;
+    white-space: nowrap;
+}
+
+.bar-container .label {
+    margin-top: 5px;
+    font-size: 0.7em;
+    color: #555;
+    text-align: center;
+}
+
+.no-data {
+    text-align: center;
+    color: #888;
+    margin-top: 20px;
 }
 
 /*出勤ボタン&退勤ボタン*/
