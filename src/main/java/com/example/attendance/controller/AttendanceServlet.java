@@ -181,7 +181,12 @@ public class AttendanceServlet extends HttpServlet {
 		}
 		
 		String action = request.getParameter("action");
-		String targetUserId = request.getParameter("userId");
+		String targetUserId = request.getParameter("targetUserId");
+		if (targetUserId == null || targetUserId.isEmpty()) {
+		    targetUserId = user.getUsername();
+		}
+		
+		
 		
 		try {
 			if ("check_in".equals(action)) {
@@ -203,8 +208,12 @@ public class AttendanceServlet extends HttpServlet {
 					return;
 				}
 				
-				LocalDateTime checkIn = LocalDateTime.parse(checkInStr);
-				LocalDateTime checkOut = checkOutStr != null && !checkOutStr.isEmpty() ? LocalDateTime.parse(checkOutStr) : null;
+				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+				LocalDateTime checkIn = LocalDateTime.parse(checkInStr, formatter);
+				LocalDateTime checkOut = (checkOutStr != null && !checkOutStr.isEmpty())
+				    ? LocalDateTime.parse(checkOutStr, formatter)
+				    : null;
+
 				
 				if (checkOut != null && checkIn.isAfter(checkOut)) {
 					session.setAttribute("script", "alert('退勤時間は出勤時間より後である必要があります。');");
@@ -218,6 +227,10 @@ public class AttendanceServlet extends HttpServlet {
 					response.sendRedirect(request.getContextPath() + "/attendance?action=filter");
 					return;
 				}
+				
+				 System.out.println("add_manual 受信: userId=" + targetUserId);
+				 System.out.println("checkIn=" + checkIn);
+				 System.out.println("checkOut=" + checkOut);
 				
 				attendanceDAO.addManualAttendance(targetUserId, checkIn, checkOut);
 				session.setAttribute("script", "alert('勤怠記録を手動で追加しました。');");
@@ -313,6 +326,10 @@ public class AttendanceServlet extends HttpServlet {
 		List<Attendance> records = attendanceDAO.findFilteredRecords(filterUserId, startDate, endDate);
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 		
+		// 合計出勤日数を計算するためのマップ
+	    Map<String, Long> checkInCounts = new HashMap<>();
+
+	    
 		for (Attendance record : records) {
 	        // 出力する値の数を修正
 	        writer.append(String.format("%s,%s,%s,%s,%.2f%n",
@@ -320,7 +337,20 @@ public class AttendanceServlet extends HttpServlet {
 	            record.getCheckInTime() != null ? record.getCheckInTime().toLocalDate().toString() : "",
 	            record.getCheckInTime() != null ? record.getCheckInTime().format(formatter) : "",
 	            record.getCheckOutTime() != null ? record.getCheckOutTime().format(formatter) : "",
-	            record.getWorkingHours())); // 労働時間を追加
+	            record.getWorkingHours())); // 労働時間をCSVの要素として追加
+	     // ユーザーごとの出勤日数をカウント
+	        String userId = record.getUserId();
+	        if (userId != null && !userId.isEmpty() && record.getCheckInTime() != null) {
+	            checkInCounts.put(userId, checkInCounts.getOrDefault(userId, 0L) + 1);
+	        }
+	    }
+		// 合計出勤日数のヘッダーを追加
+	    writer.append("\n---\n");
+	    writer.append("User ID,Total Working Days\n");
+
+	    // 各ユーザーの合計出勤日数をCSVに出力
+	    for (Map.Entry<String, Long> entry : checkInCounts.entrySet()) {
+	        writer.append(String.format("%s,%d%n", entry.getKey(), entry.getValue()));
 	    }
 		writer.flush();
 	}

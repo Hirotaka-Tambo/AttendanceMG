@@ -250,7 +250,8 @@ public class AttendanceDAO {
         }
         return monthlyCounts;
     }
-
+    
+    
     // 勤怠記録の手動追加（管理者用）
     public void addManualAttendance(String userId, LocalDateTime checkIn, LocalDateTime checkOut) {
         String sql = "INSERT INTO attendance (user_id, check_in_time, check_out_time) VALUES (?, ?, ?)";
@@ -310,62 +311,55 @@ public class AttendanceDAO {
     }
 
     /**
-     * 新しい勤怠記録が既存の記録と時間重複していないかを確認します。
+     * 新しい勤怠記録が既存の記録と時間重複していないか確認
      */
     public boolean hasTimeOverlap(String userId, LocalDateTime newCheckIn, LocalDateTime newCheckOut) {
-        String sql = "SELECT COUNT(*) FROM attendance WHERE user_id = ? AND "
-                   + "("
-                   + "(check_in_time < ? AND (check_out_time > ? OR check_out_time IS NULL))"
-                   + " OR "
-                   + "(? < check_in_time AND (? IS NULL OR ? > check_in_time))"
-                   + ")";
+        String sql = "SELECT COUNT(*) FROM attendance " +
+                     "WHERE user_id = ? AND " +
+                     "check_in_time < ? AND (check_out_time > ? OR check_out_time IS NULL)";
+
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            int paramIndex = 1;
-            pstmt.setString(paramIndex++, userId);
-            pstmt.setTimestamp(paramIndex++, Timestamp.valueOf(newCheckOut));
-            pstmt.setTimestamp(paramIndex++, Timestamp.valueOf(newCheckIn));
-            pstmt.setTimestamp(paramIndex++, Timestamp.valueOf(newCheckIn));
-            pstmt.setTimestamp(paramIndex++, newCheckOut != null ? Timestamp.valueOf(newCheckOut) : null);
-            pstmt.setTimestamp(paramIndex++, newCheckOut != null ? Timestamp.valueOf(newCheckOut) : null);
+
+            pstmt.setString(1, userId);
+            pstmt.setTimestamp(2, Timestamp.valueOf(newCheckOut != null ? newCheckOut : LocalDateTime.MAX));
+            pstmt.setTimestamp(3, Timestamp.valueOf(newCheckIn));
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 return rs.next() && rs.getInt(1) > 0;
             }
+
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException("時間重複の確認に失敗しました。", e);
         }
     }
-    
+
     /**
-     * 勤怠記録を更新する際に、更新対象の記録を除いて時間重複がないかを確認します。
+     * 勤怠記録を更新する際に、更新対象の記録を除いて時間重複がないか確認
      */
     public boolean hasTimeOverlapForUpdate(String userId, LocalDateTime oldCheckIn,
                                            LocalDateTime newCheckIn, LocalDateTime newCheckOut) {
-        String sql = "SELECT COUNT(*) FROM attendance WHERE user_id = ? AND check_in_time != ? AND "
-                   + "("
-                   + "(check_in_time < ? AND (check_out_time > ? OR check_out_time IS NULL))"
-                   + " OR "
-                   + "(? < check_in_time AND (? IS NULL OR ? > check_in_time))"
-                   + ")";
+        String sql = "SELECT COUNT(*) FROM attendance " +
+                     "WHERE user_id = ? AND check_in_time != ? AND " +
+                     "check_in_time < ? AND (check_out_time > ? OR check_out_time IS NULL)";
+
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            int paramIndex = 1;
-            pstmt.setString(paramIndex++, userId);
-            pstmt.setTimestamp(paramIndex++, Timestamp.valueOf(oldCheckIn));
-            pstmt.setTimestamp(paramIndex++, Timestamp.valueOf(newCheckOut));
-            pstmt.setTimestamp(paramIndex++, Timestamp.valueOf(newCheckIn));
-            pstmt.setTimestamp(paramIndex++, Timestamp.valueOf(newCheckIn));
-            pstmt.setTimestamp(paramIndex++, newCheckOut != null ? Timestamp.valueOf(newCheckOut) : null);
-            pstmt.setTimestamp(paramIndex++, newCheckOut != null ? Timestamp.valueOf(newCheckOut) : null);
+
+            pstmt.setString(1, userId);
+            pstmt.setTimestamp(2, Timestamp.valueOf(oldCheckIn));
+            pstmt.setTimestamp(3, Timestamp.valueOf(newCheckOut != null ? newCheckOut : LocalDateTime.MAX));
+            pstmt.setTimestamp(4, Timestamp.valueOf(newCheckIn));
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 return rs.next() && rs.getInt(1) > 0;
             }
+
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException("更新時の時間重複の確認に失敗しました。", e);
         }
     }
+
 }

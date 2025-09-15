@@ -170,7 +170,7 @@
         <input type="hidden" name="action" value="add_manual">
         <p>
             <label for="manualUserId">ユーザーID:</label>
-            <input type="text" id="manualUserId" name="userId" required>
+            <input type="text" id="manualUserId" name="targetUserId" required>
         </p>
         <p>
             <label for="manualCheckInTime">出勤時刻:</label>
