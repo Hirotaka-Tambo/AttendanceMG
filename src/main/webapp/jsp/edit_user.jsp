@@ -12,7 +12,6 @@
         var script = "${sessionScope.script}";
         if (script && script.trim() !== "") {
             eval(script);
-            // ダイアログ表示後、メッセージが残らないようにセッションから削除
             <c:remove var="script" scope="session"/>
         }
     };
@@ -21,12 +20,12 @@
 <body>
 <div class="container">
     <h1>ユーザー情報編集</h1>
-    <p>ユーザーID: **<c:out value="${userToEdit.username}"/>**</p>
+    <p>ユーザーID: <c:out value="${userToEdit.username}"/></p>
     
     <div class="main-nav">
         <a href="attendance?action=filter">勤怠履歴管理</a>
         <a href="users?action=list">ユーザー管理</a>
-        <a href="logout">ログアウト</a>
+        <a href="logout" class="danger" onclick="return confirm('ログアウトしますか？');">ログアウト</a>
     </div>
 
     <c:if test="${not empty requestScope.script}">
@@ -59,16 +58,18 @@
     <hr>
     
     <h2>パスワードのリセット</h2>
-    <form action="users" method="post" onsubmit="return confirm('本当にパスワードをリセットしますか？');">
-        <input type="hidden" name="action" value="reset_password">
-        <input type="hidden" name="username" value="${userToEdit.username}">
-        <p>
-            <label for="newPassword">新しいパスワード:</label>
-            <input type="password" id="newPassword" name="newPassword" required>
-        </p>
-        <div class="button-group">
-            <input type="submit" value="パスワードをリセット" class="button danger">
-        </div>
+    <form action="users" method="post" onsubmit="return validatePasswordReset();">
+    <input type="hidden" name="action" value="reset_password">
+    <input type="hidden" name="username" value="${userToEdit.username}">
+    <p>
+        <label for="newPassword">新しいパスワード:</label>
+        <input type="password" id="newPassword" name="newPassword" required pattern="[a-zA-Z]{5,10}" 
+        title="パスワードは5〜10文字の半角アルファベットで入力してください。" placeholder="5〜10文字の半角アルファベットで入力してください。">
+        <span id="newPasswordError" class="error-message"></span>
+    </p>
+    <div class="button-group">
+        <input type="submit" value="パスワードをリセット" class="button danger">
+    </div>
     </form>
     
     <hr>
@@ -78,5 +79,32 @@
     </div>
 
 </div>
+
+<script>
+    // パスワードリセットフォームのみを対象。
+    function validatePasswordReset() {
+        document.getElementById('newPasswordError').innerText = '';
+
+        var newPassword = document.getElementById('newPassword').value;
+        var isValid = true;
+
+        if (newPassword === '') {
+            document.getElementById('newPasswordError').innerText = '! パスワードを入力してください。';
+            isValid = false;
+        } else if (newPassword.length < 5 || newPassword.length > 10) {
+            document.getElementById('newPasswordError').innerText = 'パスワードは5〜10文字で入力してください。';
+            isValid = false;
+        } else if (!/^[a-zA-Z]+$/.test(newPassword)) {
+            document.getElementById('newPasswordError').innerText = 'パスワードは半角アルファベットのみ使用できます。';
+            isValid = false;
+        }
+
+        if (isValid) {
+            return confirm('本当にパスワードをリセットしますか？');
+        } else {
+            return false;
+        }
+    }
+</script>
 </body>
 </html>

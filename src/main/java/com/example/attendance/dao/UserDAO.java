@@ -17,15 +17,13 @@ import com.example.attendance.util.DBUtils;
 public class UserDAO {
 	
 	// UserServletからの呼び出しに合わせてaddUserメソッドを修正
-	public void addUser(String username, String password, String role) {
-		String salt = UUID.randomUUID().toString();
-		String hashedPassWord = hashPassword(password, salt);
+	public void addUser(String username, String hashedPassword, String salt, String role) {
 		String sql = "INSERT INTO users(username, password_hash, salt, user_role, enabled) VALUES(?,?,?,?,?)";
 		
 		try(Connection conn = DBUtils.getConnection();
 			PreparedStatement pstmt = conn.prepareStatement(sql)){
 			pstmt.setString(1, username);
-			pstmt.setString(2, hashedPassWord);
+			pstmt.setString(2, hashedPassword);
 			pstmt.setString(3, salt);
 			pstmt.setString(4, role);
 			pstmt.setBoolean(5, true); // 新規ユーザーはデフォルトで有効

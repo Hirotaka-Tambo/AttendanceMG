@@ -386,3 +386,10 @@ input.button.check-out {
 input.button.check-out:hover {
     background-color: #c82333;   
 }
+
+.error-message {
+    color: red;
+    font-size: 0.9em;
+    display: block; /* 新しい行に表示 */
+    margin-top: 5px;
+}

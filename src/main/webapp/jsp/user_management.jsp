@@ -26,7 +26,7 @@
       <div class="main-nav">
          <a href="attendance?action=filter">勤怠履歴管理</a>
          <a href="users?action=list">ユーザー管理</a>
-         <a href="logout" class="danger">ログアウト</a>
+         <a href="logout" class="danger" onclick="return confirm('ログアウトしますか？');">ログアウト</a>
       </div>
       
       <c:if test="${not empty successMessage}">
@@ -82,31 +82,79 @@
           </c:forEach>
         </tbody>
       </table>
+      
+      <h2>ユーザー追加</h2>
+      <form action="users" method="post" onsubmit="return validateForm();">
+         <input type="hidden" name="action" value="add_user">
+          <p>
+           <label for="username">ユーザーID:</label>
+           <input type="text" id="username" name="username" required maxlength="10" placeholder="1〜10文字の半角英数字で入力してください。 例: user123">
+           <span id="usernameError" class="error-message"></span>
+          </p>
     
-    
-    <h2>ユーザー追加</h2>
-    <form action="users" method="post" onsubmit="return confirm('このユーザーを追加しますか?');">
-        <input type="hidden" name="action" value="add_user">
         <p>
-            <label for="username">ユーザーID:</label>
-            <input type="text" id="username" name="username" required>
+           <label for="password">パスワード:</label>
+           <input type="password" id="password" name="password" required placeholder="5〜10文字の半角アルファベットで入力してください。">
+           <span id="passwordError" class="error-message"></span>
         </p>
         <p>
-            <label for="password">パスワード:</label>
-            <input type="password" id="password" name="password" required>
+           <label for="role">役割:</label>
+           <select id="role" name="role">
+              <option value="employee">従業員</option>
+              <option value="admin">管理者</option>
+           </select>
         </p>
-        <p>
-            <label for="role">役割:</label>
-            <select id="role" name="role">
-                <option value="employee">従業員</option>
-                <option value="admin">管理者</option>
-            </select>
-        </p>
+        
         <div class="button-group">
-            <input type="submit" value="ユーザー追加" class="button">
+           <input type="submit" value="ユーザー追加" class="button">
         </div>
-    </form>
+        
+       </form>
      
 </div>
+
+<script>
+    function validateForm() {
+        // エラーメッセージをクリア
+        document.getElementById('usernameError').innerText = '';
+        document.getElementById('passwordError').innerText = '';
+
+        var username = document.getElementById('username').value;
+        var password = document.getElementById('password').value;
+        var isValid = true;
+
+        // ユーザー名のバリデーション
+        if (username.trim() === '') {
+            document.getElementById('usernameError').innerText = '! ユーザーIDを入力してください。';
+            isValid = false;
+        } else if (username.length > 10) {
+            document.getElementById('usernameError').innerText = 'ユーザー名は10文字以内で入力してください。';
+            isValid = false;
+        } else if (!/^[a-zA-Z0-9]+$/.test(username)) {
+            document.getElementById('usernameError').innerText = 'ユーザー名は半角英数字のみ使用できます。';
+            isValid = false;
+        }
+
+        // パスワードのバリデーション
+        if (password === '') {
+            document.getElementById('passwordError').innerText = '! パスワードを入力してください。';
+            isValid = false;
+        } else if (password.length < 5 || password.length > 10) {
+            document.getElementById('passwordError').innerText = 'パスワードは5〜10文字で入力してください。';
+            isValid = false;
+        } else if (!/^[a-zA-Z]+$/.test(password)) {
+            document.getElementById('passwordError').innerText = 'パスワードは半角アルファベットのみ使用できます。';
+            isValid = false;
+        }
+
+        // バリデーションが全て成功したらtrueを返す
+        if (isValid) {
+            return confirm('このユーザーを追加しますか?');
+        } else {
+            return false;
+        }
+    }
+</script>
+
 </body>
 </html>
