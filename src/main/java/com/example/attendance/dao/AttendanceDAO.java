@@ -33,7 +33,10 @@ public class AttendanceDAO {
 
     // 従業員の退勤を記録
     public void checkOut(String userId) {
-        String sql = "UPDATE attendance SET check_out_time = ? WHERE id = (SELECT id FROM attendance WHERE user_id = ? AND check_out_time IS NULL ORDER BY check_in_time DESC LIMIT 1)";
+        String sql = "UPDATE attendance SET check_out_time = ? " +
+                     "WHERE id = (SELECT id FROM attendance " +
+                     "WHERE user_id = ? AND check_out_time IS NULL " +
+                     "ORDER BY check_in_time DESC LIMIT 1)";
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setTimestamp(1, Timestamp.valueOf(LocalDateTime.now()));
@@ -60,7 +63,7 @@ public class AttendanceDAO {
                     LocalDateTime checkInTime = (checkInTimestamp != null) ? checkInTimestamp.toLocalDateTime() : null;
                     LocalDateTime checkOutTime = (checkOutTimestamp != null) ? checkOutTimestamp.toLocalDateTime() : null;
 
-                    attendanceList.add(new Attendance(rs.getString("user_id"),checkInTime,checkOutTime));
+                    attendanceList.add(new Attendance(rs.getString("user_id"), checkInTime, checkOutTime));
                 }
             }
         } catch (SQLException e) {
@@ -107,7 +110,7 @@ public class AttendanceDAO {
                     LocalDateTime checkInTime = (checkInTimestamp != null) ? checkInTimestamp.toLocalDateTime() : null;
                     LocalDateTime checkOutTime = (checkOutTimestamp != null) ? checkOutTimestamp.toLocalDateTime() : null;
                     
-                    records.add(new Attendance(rs.getString("user_id"),checkInTime,checkOutTime));
+                    records.add(new Attendance(rs.getString("user_id"), checkInTime, checkOutTime));
                 }
             }
         } catch (SQLException e) {
@@ -117,11 +120,13 @@ public class AttendanceDAO {
         return records;
     }
 
-    // ユーザーごとの合計労働時間を取得する新しいメソッド（フィルター対応）
+    // ユーザーごとの合計労働時間を取得（フィルター対応）
     public Map<String, Double> getTotalWorkingHoursByUsers(String userId, LocalDate startDate, LocalDate endDate) {
         Map<String, Double> totalHours = new HashMap<>();
-        StringBuilder sql = new StringBuilder("SELECT user_id, SUM(EXTRACT(EPOCH FROM (check_out_time - check_in_time)) / 3600) AS total_hours FROM attendance");
-        sql.append(" WHERE check_out_time IS NOT NULL");
+        StringBuilder sql = new StringBuilder(
+            "SELECT user_id, SUM(EXTRACT(EPOCH FROM (check_out_time - check_in_time)) / 3600) AS total_hours " +
+            "FROM attendance WHERE check_out_time IS NOT NULL"
+        );
         
         if (userId != null && !userId.isEmpty()) {
             sql.append(" AND user_id = ?");
@@ -158,11 +163,14 @@ public class AttendanceDAO {
         return totalHours;
     }
 
-    // 月ごとの合計労働時間を取得する新しいメソッド（フィルター対応）
+    // 月ごとの合計労働時間を取得（フィルター対応）
     public Map<String, Double> getMonthlyWorkingHours(String userId, LocalDate startDate, LocalDate endDate) {
         Map<String, Double> monthlyHours = new HashMap<>();
-        StringBuilder sql = new StringBuilder("SELECT to_char(check_in_time, 'YYYY-MM') AS month, SUM(EXTRACT(EPOCH FROM (check_out_time - check_in_time)) / 3600) AS total_hours FROM attendance");
-        sql.append(" WHERE check_out_time IS NOT NULL");
+        StringBuilder sql = new StringBuilder(
+            "SELECT to_char(check_in_time, 'YYYY-MM') AS month, " +
+            "SUM(EXTRACT(EPOCH FROM (check_out_time - check_in_time)) / 3600) AS total_hours " +
+            "FROM attendance WHERE check_out_time IS NOT NULL"
+        );
         
         if (userId != null && !userId.isEmpty()) {
             sql.append(" AND user_id = ?");
@@ -199,11 +207,14 @@ public class AttendanceDAO {
         return monthlyHours;
     }
     
-    // 月ごとの出勤日数を取得する新しいメソッド（フィルター対応）
+    // 月ごとの出勤日数を取得（フィルター対応）
     public Map<String, Long> getMonthlyCheckInCounts(String userId, LocalDate startDate, LocalDate endDate) {
-    	Map<String, Long> monthlyCounts = new HashMap<>();
-        StringBuilder sql = new StringBuilder("SELECT to_char(check_in_time, 'YYYY-MM') AS month, COUNT(DISTINCT DATE(check_in_time)) AS daily_count FROM attendance");
-        sql.append(" WHERE check_in_time IS NOT NULL");
+        Map<String, Long> monthlyCounts = new HashMap<>();
+        StringBuilder sql = new StringBuilder(
+            "SELECT to_char(check_in_time, 'YYYY-MM') AS month, " +
+            "COUNT(DISTINCT DATE(check_in_time)) AS daily_count " +
+            "FROM attendance WHERE check_in_time IS NOT NULL"
+        );
 
         if (userId != null && !userId.isEmpty()) {
             sql.append(" AND user_id = ?");
@@ -256,8 +267,10 @@ public class AttendanceDAO {
     }
     
     // 勤怠記録の手動更新（管理者用）
-    public boolean updateManualAttendance(String userId, LocalDateTime oldCheckIn, LocalDateTime oldCheckOut, LocalDateTime newCheckIn, LocalDateTime newCheckOut) {
-        String sql = "UPDATE attendance SET check_in_time = ?, check_out_time = ? WHERE user_id = ? AND check_in_time = ?";
+    public boolean updateManualAttendance(String userId, LocalDateTime oldCheckIn, LocalDateTime oldCheckOut,
+                                          LocalDateTime newCheckIn, LocalDateTime newCheckOut) {
+        String sql = "UPDATE attendance SET check_in_time = ?, check_out_time = ? " +
+                     "WHERE user_id = ? AND check_in_time = ?";
         
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -293,6 +306,66 @@ public class AttendanceDAO {
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException("手動での勤怠記録の削除に失敗しました。", e);
+        }
+    }
+
+    /**
+     * 新しい勤怠記録が既存の記録と時間重複していないかを確認します。
+     */
+    public boolean hasTimeOverlap(String userId, LocalDateTime newCheckIn, LocalDateTime newCheckOut) {
+        String sql = "SELECT COUNT(*) FROM attendance WHERE user_id = ? AND "
+                   + "("
+                   + "(check_in_time < ? AND (check_out_time > ? OR check_out_time IS NULL))"
+                   + " OR "
+                   + "(? < check_in_time AND (? IS NULL OR ? > check_in_time))"
+                   + ")";
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            int paramIndex = 1;
+            pstmt.setString(paramIndex++, userId);
+            pstmt.setTimestamp(paramIndex++, Timestamp.valueOf(newCheckOut));
+            pstmt.setTimestamp(paramIndex++, Timestamp.valueOf(newCheckIn));
+            pstmt.setTimestamp(paramIndex++, Timestamp.valueOf(newCheckIn));
+            pstmt.setTimestamp(paramIndex++, newCheckOut != null ? Timestamp.valueOf(newCheckOut) : null);
+            pstmt.setTimestamp(paramIndex++, newCheckOut != null ? Timestamp.valueOf(newCheckOut) : null);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                return rs.next() && rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException("時間重複の確認に失敗しました。", e);
+        }
+    }
+    
+    /**
+     * 勤怠記録を更新する際に、更新対象の記録を除いて時間重複がないかを確認します。
+     */
+    public boolean hasTimeOverlapForUpdate(String userId, LocalDateTime oldCheckIn,
+                                           LocalDateTime newCheckIn, LocalDateTime newCheckOut) {
+        String sql = "SELECT COUNT(*) FROM attendance WHERE user_id = ? AND check_in_time != ? AND "
+                   + "("
+                   + "(check_in_time < ? AND (check_out_time > ? OR check_out_time IS NULL))"
+                   + " OR "
+                   + "(? < check_in_time AND (? IS NULL OR ? > check_in_time))"
+                   + ")";
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            int paramIndex = 1;
+            pstmt.setString(paramIndex++, userId);
+            pstmt.setTimestamp(paramIndex++, Timestamp.valueOf(oldCheckIn));
+            pstmt.setTimestamp(paramIndex++, Timestamp.valueOf(newCheckOut));
+            pstmt.setTimestamp(paramIndex++, Timestamp.valueOf(newCheckIn));
+            pstmt.setTimestamp(paramIndex++, Timestamp.valueOf(newCheckIn));
+            pstmt.setTimestamp(paramIndex++, newCheckOut != null ? Timestamp.valueOf(newCheckOut) : null);
+            pstmt.setTimestamp(paramIndex++, newCheckOut != null ? Timestamp.valueOf(newCheckOut) : null);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                return rs.next() && rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException("更新時の時間重複の確認に失敗しました。", e);
         }
     }
 }

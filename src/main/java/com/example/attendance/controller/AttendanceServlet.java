@@ -118,8 +118,6 @@ public class AttendanceServlet extends HttpServlet {
 			    System.out.println("月: " + entry.getKey() + ", 時間: " + entry.getValue() + ", 計算高さ: " + height + "px");
 			}
 			
-			
-
 			request.setAttribute("userList", userDAO.getAllUsers());
 			
 			RequestDispatcher rd = request.getRequestDispatcher("/jsp/admin_menu.jsp");
@@ -135,20 +133,15 @@ public class AttendanceServlet extends HttpServlet {
 				latestRecord = userRecords.get(0);
 			}
 			
-			// グラフの表示期間を定義（例：直近6ヶ月）
 	        LocalDate endDate = LocalDate.now();
-	        // 6ヶ月前の月の1日を開始日とする
 	        LocalDate startDate = endDate.minusMonths(5).withDayOfMonth(1); 
 			
-			// 従業員メニュー用のデータを取得（グラフ用）
 		    Map<String, Double> monthlyWorkingHours = attendanceDAO.getMonthlyWorkingHours(userId, startDate, endDate);
 		    Map<String, Long> monthlyCheckInCounts = attendanceDAO.getMonthlyCheckInCounts(userId, startDate, endDate);
 		    
-		    // 標準値を定義
 		    double standardHours = 160.0;
 		    long standardDays = 20L;
 			
-			// パーセンテージ計算用のマップを作成
 		    Map<String, Double> hoursPercentage = new HashMap<>();
 		    Map<String, Double> daysPercentage = new HashMap<>();
 		    
@@ -165,7 +158,6 @@ public class AttendanceServlet extends HttpServlet {
 			request.setAttribute("attendanceRecords", userRecords);
 			request.setAttribute("latestRecord", latestRecord);
 			
-			// グラフデータをJSPに送信
 		    request.setAttribute("monthlyWorkingHours", monthlyWorkingHours);
 		    request.setAttribute("monthlyCheckInCounts", monthlyCheckInCounts);
 		    request.setAttribute("hoursPercentage", hoursPercentage);
@@ -176,7 +168,6 @@ public class AttendanceServlet extends HttpServlet {
 			RequestDispatcher rd = request.getRequestDispatcher("/jsp/employee_menu.jsp");
 			rd.forward(request, response);
 		}
-		
 	}
 	
 	@Override
@@ -202,16 +193,65 @@ public class AttendanceServlet extends HttpServlet {
 				session.setAttribute("script", "alert('退勤を記録しました');");
 			
 			} else if ("add_manual".equals(action) && "admin".equals(user.getRole())) {
-				LocalDateTime checkIn = LocalDateTime.parse(request.getParameter("checkInTime"));
-				LocalDateTime checkOut = request.getParameter("checkOutTime") != null && !request.getParameter("checkOutTime").isEmpty() ? LocalDateTime.parse(request.getParameter("checkOutTime")) : null;
+				String checkInStr = request.getParameter("checkInTime");
+				String checkOutStr = request.getParameter("checkOutTime");
+
+				// バリデーションチェック
+				if (checkInStr == null || checkInStr.isEmpty()) {
+					session.setAttribute("script", "alert('出勤時間は必須です。');");
+					response.sendRedirect(request.getContextPath() + "/attendance?action=filter");
+					return;
+				}
+				
+				LocalDateTime checkIn = LocalDateTime.parse(checkInStr);
+				LocalDateTime checkOut = checkOutStr != null && !checkOutStr.isEmpty() ? LocalDateTime.parse(checkOutStr) : null;
+				
+				if (checkOut != null && checkIn.isAfter(checkOut)) {
+					session.setAttribute("script", "alert('退勤時間は出勤時間より後である必要があります。');");
+					response.sendRedirect(request.getContextPath() + "/attendance?action=filter");
+					return;
+				}
+				
+				// 時間重複チェック (DAOにメソッドを実装する必要があります)
+				if (attendanceDAO.hasTimeOverlap(targetUserId, checkIn, checkOut)) {
+					session.setAttribute("script", "alert('入力された期間にすでに勤怠記録が存在します。');");
+					response.sendRedirect(request.getContextPath() + "/attendance?action=filter");
+					return;
+				}
+				
 				attendanceDAO.addManualAttendance(targetUserId, checkIn, checkOut);
 				session.setAttribute("script", "alert('勤怠記録を手動で追加しました。');");
 			
 			} else if ("update_manual".equals(action) && "admin".equals(user.getRole())) {
-				LocalDateTime oldCheckIn = LocalDateTime.parse(request.getParameter("oldCheckInTime"));
-				LocalDateTime oldCheckOut = request.getParameter("oldCheckOutTime") != null && !request.getParameter("oldCheckOutTime").isEmpty() ? LocalDateTime.parse(request.getParameter("oldCheckOutTime")) : null;
-				LocalDateTime newCheckIn = LocalDateTime.parse(request.getParameter("newCheckInTime"));
-				LocalDateTime newCheckOut = request.getParameter("newCheckOutTime") != null && !request.getParameter("newCheckOutTime").isEmpty() ? LocalDateTime.parse(request.getParameter("newCheckOutTime")) : null;
+				String oldCheckInStr = request.getParameter("oldCheckInTime");
+				String oldCheckOutStr = request.getParameter("oldCheckOutTime");
+				String newCheckInStr = request.getParameter("newCheckInTime");
+				String newCheckOutStr = request.getParameter("newCheckOutTime");
+				
+				// バリデーションチェック
+				if (newCheckInStr == null || newCheckInStr.isEmpty()) {
+					session.setAttribute("script", "alert('新しい出勤時間は必須です。');");
+					response.sendRedirect(request.getContextPath() + "/attendance?action=filter");
+					return;
+				}
+				
+				LocalDateTime oldCheckIn = LocalDateTime.parse(oldCheckInStr);
+				LocalDateTime oldCheckOut = oldCheckOutStr != null && !oldCheckOutStr.isEmpty() ? LocalDateTime.parse(oldCheckOutStr) : null;
+				LocalDateTime newCheckIn = LocalDateTime.parse(newCheckInStr);
+				LocalDateTime newCheckOut = newCheckOutStr != null && !newCheckOutStr.isEmpty() ? LocalDateTime.parse(newCheckOutStr) : null;
+
+				if (newCheckOut != null && newCheckIn.isAfter(newCheckOut)) {
+					session.setAttribute("script", "alert('新しい退勤時間は出勤時間より後である必要があります。');");
+					response.sendRedirect(request.getContextPath() + "/attendance?action=filter");
+					return;
+				}
+
+				// 時間重複チェック（更新対象の記録自体は除外）
+				if (attendanceDAO.hasTimeOverlapForUpdate(targetUserId, oldCheckIn, newCheckIn, newCheckOut)) {
+					session.setAttribute("script", "alert('入力された期間にすでに他の勤怠記録が存在します。');");
+					response.sendRedirect(request.getContextPath() + "/attendance?action=filter");
+					return;
+				}
 				
 				if (attendanceDAO.updateManualAttendance(targetUserId, oldCheckIn, oldCheckOut, newCheckIn, newCheckOut)) {
 					session.setAttribute("script", "alert('勤怠記録を手動で更新しました。');");
@@ -230,8 +270,11 @@ public class AttendanceServlet extends HttpServlet {
 			}
 		} catch (DateTimeParseException e) {
 			session.setAttribute("script", "alert('日付/時刻の形式が不正です。');");
+			System.err.println("日付/時刻の形式が不正です。: " + e.getMessage());
 		} catch (Exception e) {
 			session.setAttribute("script", "alert('操作中にエラーが発生しました: ' + e.getMessage() + '');");
+			System.err.println("操作中にエラーが発生しました: " + e.getMessage());
+			e.printStackTrace();
 		}
 		
 		// ユーザーの役割に基づいてリダイレクト先を振り分ける
@@ -277,7 +320,6 @@ public class AttendanceServlet extends HttpServlet {
 				record.getCheckOutTime() != null ? record.getCheckOutTime().format(formatter) : ""));
 		}
 		writer.flush();
-		
 	}
 	
 }
