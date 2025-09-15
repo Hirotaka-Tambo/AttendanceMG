@@ -1,5 +1,6 @@
 package com.example.attendance.dto;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -29,6 +30,7 @@ public class Attendance {
         this.checkOutTime = checkOutTime;
         this.createdAt = createdAt;
     }
+
     
     // Getterメソッド
     public int getId() {
@@ -86,5 +88,15 @@ public class Attendance {
             return this.checkOutTime.format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"));
         }
         return "-";
+    }
+    
+    public double getWorkingHours() {
+        if (checkInTime != null && checkOutTime != null) {
+            // 時間差を計算（分単位）
+            Duration duration = Duration.between(checkInTime, checkOutTime);
+            // 分を時間（小数点表記）に変換
+            return duration.toMinutes() / 60.0;
+        }
+        return 0.0;
     }
 }

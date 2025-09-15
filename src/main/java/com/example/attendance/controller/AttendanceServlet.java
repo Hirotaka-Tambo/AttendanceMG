@@ -291,7 +291,7 @@ public class AttendanceServlet extends HttpServlet {
 		response.setHeader("Content-Disposition", "attachment;filename=\"attendance_records.csv\"");
 		
 		PrintWriter writer = response.getWriter();
-		writer.append("User ID,Check-in Time,Check-out Time\n");
+		writer.append("User ID,Date,Check-in Time,Check-out Time,Working Hours\n");
 		
 		String filterUserId = request.getParameter("filterUserId");
 		String startDatestr = request.getParameter("startDate");
@@ -314,11 +314,14 @@ public class AttendanceServlet extends HttpServlet {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 		
 		for (Attendance record : records) {
-			writer.append(String.format("%s,%s,%s%n",
-				record.getUserId(),
-				record.getCheckInTime() != null ? record.getCheckInTime().format(formatter) : "",
-				record.getCheckOutTime() != null ? record.getCheckOutTime().format(formatter) : ""));
-		}
+	        // 出力する値の数を修正
+	        writer.append(String.format("%s,%s,%s,%s,%.2f%n",
+	            record.getUserId(),
+	            record.getCheckInTime() != null ? record.getCheckInTime().toLocalDate().toString() : "",
+	            record.getCheckInTime() != null ? record.getCheckInTime().format(formatter) : "",
+	            record.getCheckOutTime() != null ? record.getCheckOutTime().format(formatter) : "",
+	            record.getWorkingHours())); // 労働時間を追加
+	    }
 		writer.flush();
 	}
 	
