@@ -66,42 +66,42 @@ KDG 2025年前期審査会 上級課題　勤怠管理
 * SQL(Postgres)
 
 
-# ディレクトリ構成
+## ディレクトリ構成
 
 AttendanceMG
 ├── pom.xml
 ├── README.md
 └── src
-    └── main
-        ├── java
-        │   └── com
-        │       └── example
-        │           └── attendance
-        │               ├── controller
-        │               │   ├── AttendanceServlet.java
-        │               │   ├── LoginServlet.java
-        │               │   ├── LogoutServlet.java
-        │               │   └── UserServlet.java
-        │               ├── dao
-        │               │   ├── AttendanceDAO.java
-        │               │   └── UserDAO.java
-        │               ├── dto
-        │               │   ├── Attendance.java
-        │               │   └── User.java
-        │               ├── exception
-        │               │   └── UserOperationException.java
-        │               ├── filter
-        │               │   └── AuthenticationFilter.java
-        │               └── util
-        │                   └── DBUtils.java
-        └── webapp
-            ├── WEB-INF
-            │   └── web.xml
-            ├── jsp
-            │   ├── admin_menu.jsp
-            │   ├── edit_user.jsp
-            │   ├── employee_menu.jsp
-            │   ├── error.jsp
-            │   └── user_management.jsp
-            ├── login.jsp
-            └── style.css
+└── main
+├── java
+│ └── com
+│ └── example
+│ └── attendance
+│ ├── controller
+│ │ ├── AttendanceServlet.java
+│ │ ├── LoginServlet.java
+│ │ ├── LogoutServlet.java
+│ │ └── UserServlet.java
+│ ├── dao
+│ │ ├── AttendanceDAO.java
+│ │ └── UserDAO.java
+│ ├── dto
+│ │ ├── Attendance.java
+│ │ └── User.java
+│ ├── exception
+│ │ └── UserOperationException.java
+│ ├── filter
+│ │ └── AuthenticationFilter.java
+│ └── util
+│ └── DBUtils.java
+└── webapp
+├── WEB-INF
+│ └── web.xml
+├── jsp
+│ ├── admin_menu.jsp
+│ ├── edit_user.jsp
+│ ├── employee_menu.jsp
+│ ├── error.jsp
+│ └── user_management.jsp
+├── login.jsp
+└── style.css
