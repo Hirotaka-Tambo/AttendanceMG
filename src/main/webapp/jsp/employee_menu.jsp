@@ -8,6 +8,12 @@
 <meta charset="UTF-8">
 <title>従業員メニュー</title>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/style.css">
+<style>
+/* 勤怠履歴セクション全体をデフォルトで非表示にする */
+#historySection {
+    display: none;
+}
+</style>
 <script>
 window.onload = function() {
     var script = "${sessionScope.script}";
@@ -16,6 +22,8 @@ window.onload = function() {
         // ダイアログ表示後、メッセージが残らないようにセッションから削除
         <c:remove var="script" scope="session"/>
     }
+ // ページ読み込み時にボタンのテキストを「表示する」に設定
+        document.getElementById('toggleButton').textContent = '勤務履歴を表示する';
 };
 
 function handleLogout() {
@@ -24,7 +32,7 @@ function handleLogout() {
 
     if (isCheckedIn) {
         // 未退勤の場合、警告ダイアログを表示
-        return confirm('退勤していませんが、ログアウトしますか？\nAre you sure you want to log out without clocking out?');
+        return confirm('退勤していませんが、ログアウトしますか？\nAre you sure you want to log out without checking out?');
     } else {
         // 退勤済みの場合、通常の確認ダイアログを表示
         return confirm('ログアウトしますか？\nLog out?');
@@ -33,13 +41,15 @@ function handleLogout() {
 
 //勤務履歴の表示/非表示を切り替える関数
 function toggleAttendanceHistory() {
-    const table = document.getElementById('attendanceHistoryTable');
+    // 操作対象をhistorySection divに変更
+    const historySection = document.getElementById('historySection'); 
     const button = document.getElementById('toggleButton');
-    if (table.style.display === 'none') {
-        table.style.display = 'table';
+
+    if (historySection.style.display === 'none' || historySection.style.display === '') {
+        historySection.style.display = 'block';
         button.textContent = '勤務履歴を非表示にする';
     } else {
-        table.style.display = 'none';
+        historySection.style.display = 'none';
         button.textContent = '勤務履歴を表示する';
     }
 }
@@ -58,14 +68,14 @@ function toggleAttendanceHistory() {
      
      <div class="button-group">
         <c:if test="${latestRecord != null && latestRecord.checkOutTime == null}">
-            <form action="attendance" method="post" class="inline-form" onsubmit="return confirm('退勤しますか？\nClock out?');">
+            <form action="attendance" method="post" class="inline-form" onsubmit="return confirm('退勤しますか？\nCheck out?');">
                 <input type="hidden" name="action" value="check_out">
                 <input type="submit" value="退勤　/　Check Out" class="button check-out">
             </form>
         </c:if>
         
         <c:if test="${latestRecord == null || latestRecord.checkOutTime != null}">
-            <form action="attendance" method="post" class="inline-form" onsubmit="return confirm('出勤しますか？\nClock in?');">
+            <form action="attendance" method="post" class="inline-form" onsubmit="return confirm('出勤しますか？\nCheck in?');">
                 <input type="hidden" name="action" value="check_in">
                 <input type="submit" value="出勤　/　Check In" class="button check-in">
             </form>
@@ -77,6 +87,7 @@ function toggleAttendanceHistory() {
          <button id="toggleButton" onclick="toggleAttendanceHistory()" class="button">勤務履歴を表示する</button>
      </div>
      
+     <div id="historySection">
      <form action="attendance" method="get" class="filter-form">
         <input type="hidden" name="action" value="filter">
         <div>
@@ -123,7 +134,8 @@ function toggleAttendanceHistory() {
               <tr><td colspan="2">勤怠記録がありません。</td></tr>
            </c:if>
         </tbody>
-     </table>
+       </table>
+     
      
      <h3>月別勤怠グラフ</h3>
     <div class="chart-container">
@@ -166,6 +178,7 @@ function toggleAttendanceHistory() {
                 </c:if>
             </div>
         </div>
+    </div>
     </div>
      
      <div class="button-group">
