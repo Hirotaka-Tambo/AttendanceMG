@@ -67,7 +67,7 @@ KDG 2025年前期審査会 上級課題　勤怠管理
 
 
 ## ディレクトリ構成
-
+```
 AttendanceMG
 ├── pom.xml
 ├── README.md
@@ -105,3 +105,4 @@ AttendanceMG
 │ └── user_management.jsp
 ├── login.jsp
 └── style.css
+```
