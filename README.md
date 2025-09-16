@@ -56,7 +56,7 @@ KDG 2025年前期審査会 上級課題　勤怠管理
 | 従業員   | employee3    | empassempass |                                  |
 | 従業員   | employee4    | employee4    | 管理者画面のパスワードテストにおいて使用|
 
-*employee4は未実装。
+*employee4は未登録。
 
 ## 💻 技術スタック
 
