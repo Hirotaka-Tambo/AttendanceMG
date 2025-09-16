@@ -12,37 +12,34 @@ import jakarta.servlet.http.HttpSession;
 import com.example.attendance.dao.UserDAO;
 import com.example.attendance.dto.User;
 
-/**
- * Servlet implementation class LoginServlet
- */
 @WebServlet("/login")
 public class LoginServlet extends HttpServlet {
-	//セキュリティ強化のために、hash+saltで強固に
-	
-	private final UserDAO userDAO = new UserDAO();
-	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-	    String username = request.getParameter("username");
-	    String password = request.getParameter("password");
-	    User user = userDAO.findByUsername(username);
 
-	    if (user != null && user.isEnabled() && userDAO.verifyPassword(password, user.getPasswordHash(), user.getSalt())) {
-	        HttpSession session = request.getSession();
-	        session.setAttribute("user", user);
-	        session.setAttribute("successMessage", "ログインしました");
+    private final UserDAO userDAO = new UserDAO();
 
-	        if ("admin".equals(user.getRole())) {
-	            // 管理者の場合、AttendanceServletにリダイレクト
-	            response.sendRedirect(request.getContextPath() + "/attendance");
-	        } else {
-	            // 一般ユーザーの場合、AttendanceServletにリダイレクト
-	            response.sendRedirect(request.getContextPath() + "/attendance");
-	        }
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
 
-	    } else {
-	        // ログイン失敗時
-	        request.setAttribute("errorMessage", "ユーザーIDまたはパスワードが不正、もしくはアカウントが無効です");
-	        request.getRequestDispatcher("/login.jsp").forward(request, response);
-	    }
-	}
+        try {
+            User user = userDAO.findByUsername(username);
+
+            if (user != null && user.isEnabled() && userDAO.verifyPassword(password, user.getPasswordHash(), user.getSalt())) {
+                HttpSession session = request.getSession();
+                session.setAttribute("user", user);
+                session.setAttribute("successMessage", "ログインしました");
+                response.sendRedirect(request.getContextPath() + "/attendance");
+            } else {
+                request.setAttribute("errorMessage", "ユーザーIDまたはパスワードが不正、もしくはアカウントが無効です");
+                request.getRequestDispatcher("/login.jsp").forward(request, response);
+            }
+
+        } catch (Exception e) {
+            // ユーザーが直せない例外
+            request.setAttribute("errorMessage", "システムエラーが発生しました");
+            request.setAttribute("exception", e);
+            request.getRequestDispatcher("/jsp/error.jsp").forward(request, response);
+        }
+    }
 }

@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.example.attendance.dto.Attendance;
+import com.example.attendance.exception.UserOperationException;
 import com.example.attendance.util.DBUtils;
 
 public class AttendanceDAO {
@@ -253,34 +254,45 @@ public class AttendanceDAO {
     
     
     // 勤怠記録の手動追加（管理者用）
-    public void addManualAttendance(String userId, LocalDateTime checkIn, LocalDateTime checkOut) {
-        String sql = "INSERT INTO attendance (user_id, check_in_time, check_out_time) VALUES (?, ?, ?)";
-        try (Connection conn = DBUtils.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, userId);
-            pstmt.setTimestamp(2, Timestamp.valueOf(checkIn));
-            pstmt.setTimestamp(3, checkOut != null ? Timestamp.valueOf(checkOut) : null);
-            pstmt.executeUpdate();
+    public void addManualAttendance(String userId, LocalDateTime checkIn, LocalDateTime checkOut) throws UserOperationException {
+        try {
+            if (hasTimeOverlap(userId, checkIn, checkOut)) {
+                throw new UserOperationException("その時間帯は既に勤怠登録済みです。");
+            }
+
+            String sql = "INSERT INTO attendance (user_id, check_in_time, check_out_time) VALUES (?, ?, ?)";
+            try (Connection conn = DBUtils.getConnection();
+                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, userId);
+                pstmt.setTimestamp(2, Timestamp.valueOf(checkIn));
+                pstmt.setTimestamp(3, checkOut != null ? Timestamp.valueOf(checkOut) : null);
+                pstmt.executeUpdate();
+            }
+
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException("手動での勤怠記録の追加に失敗しました。", e);
         }
     }
     
-    // 勤怠記録の手動更新（管理者用）
-    public boolean updateManualAttendance(String userId, LocalDateTime oldCheckIn, LocalDateTime oldCheckOut,
-                                          LocalDateTime newCheckIn, LocalDateTime newCheckOut) {
-        String sql = "UPDATE attendance SET check_in_time = ?, check_out_time = ? " +
-                     "WHERE user_id = ? AND check_in_time = ?";
-        
-        try (Connection conn = DBUtils.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setTimestamp(1, Timestamp.valueOf(newCheckIn));
-            pstmt.setTimestamp(2, newCheckOut != null ? Timestamp.valueOf(newCheckOut) : null);
-            pstmt.setString(3, userId);
-            pstmt.setTimestamp(4, Timestamp.valueOf(oldCheckIn));
-            
-            return pstmt.executeUpdate() > 0;
+    // 勤怠記録更新（管理者用）
+    public boolean updateManualAttendance(String userId, LocalDateTime oldCheckIn, LocalDateTime oldCheckOut,LocalDateTime newCheckIn,
+                                          LocalDateTime newCheckOut) throws UserOperationException {
+        try {
+            if (hasTimeOverlapForUpdate(userId, oldCheckIn, newCheckIn, newCheckOut)) {
+                throw new UserOperationException("更新後の時間帯が既存の勤怠と重複しています。");
+            }
+
+            String sql = "UPDATE attendance SET check_in_time = ?, check_out_time = ? WHERE user_id = ? AND check_in_time = ?";
+            try (Connection conn = DBUtils.getConnection();
+                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setTimestamp(1, Timestamp.valueOf(newCheckIn));
+                pstmt.setTimestamp(2, newCheckOut != null ? Timestamp.valueOf(newCheckOut) : null);
+                pstmt.setString(3, userId);
+                pstmt.setTimestamp(4, Timestamp.valueOf(oldCheckIn));
+                return pstmt.executeUpdate() > 0;
+            }
+
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException("手動での勤怠記録の更新に失敗しました。", e);
@@ -288,30 +300,35 @@ public class AttendanceDAO {
     }
 
     // 勤怠記録の手動削除（管理者用）
-    public boolean deleteManualAttendance(String userId, LocalDateTime checkIn, LocalDateTime checkOut) {
+    public boolean deleteManualAttendance(String userId, LocalDateTime checkIn, LocalDateTime checkOut) throws UserOperationException{
         String sql = "DELETE FROM attendance WHERE user_id = ? AND check_in_time = ?";
         if (checkOut != null) {
             sql += " AND check_out_time = ?";
         } else {
             sql += " AND check_out_time IS NULL";
         }
-        
         try (Connection conn = DBUtils.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, userId);
-            pstmt.setTimestamp(2, Timestamp.valueOf(checkIn));
-            if (checkOut != null) {
-                pstmt.setTimestamp(3, Timestamp.valueOf(checkOut));
-            }
-            return pstmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException("手動での勤怠記録の削除に失敗しました。", e);
-        }
+        	     PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        	    pstmt.setString(1, userId);
+        	    pstmt.setTimestamp(2, Timestamp.valueOf(checkIn));
+        	    if (checkOut != null) {
+        	        pstmt.setTimestamp(3, Timestamp.valueOf(checkOut));
+        	    }
+        	    
+        	    boolean deleted = pstmt.executeUpdate() > 0;  
+        	    if (!deleted) {                               
+        	        throw new UserOperationException("削除対象の勤怠が存在しません。");
+        	    }
+        	    return true;                                 
+
+        	} catch (SQLException e) {
+        	    e.printStackTrace();
+        	    throw new RuntimeException("手動での勤怠記録の削除に失敗しました。", e);
+        	}
     }
 
     /**
-     * 新しい勤怠記録が既存の記録と時間重複していないか確認
+     * 時間重複確認
      */
     public boolean hasTimeOverlap(String userId, LocalDateTime newCheckIn, LocalDateTime newCheckOut) {
         String sql = "SELECT COUNT(*) FROM attendance " +
