@@ -46,14 +46,17 @@ KDG 2025年前期審査会 上級課題　勤怠管理
   ユーザーID:::10文字以内の半角英数字       パスワード:::5~10文字以内の半角アルファベット
 
 ## テスト用ユーザーID/パスワード
-管理者 admin1 adminpass
-従業員　employee1 empass
-従業員   employee2 passen
-従業員　employee3 empassempass
+## テスト用アカウント一覧
 
-管理者画面でのパスワードテストにおいて使用
-従業員　employee4 employee4
+| 区分     | ユーザーID   | パスワード   | 備考                             |
+|----------|--------------|--------------|----------------------------------|
+| 管理者   | admin1       | adminpass    |         　　　　　　　　　　　　　　　|
+| 従業員   | employee1    | empass       |                                  |
+| 従業員   | employee2    | passen       |                                  |
+| 従業員   | employee3    | empassempass |                                  |
+| 従業員   | employee4    | employee4    | 管理者画面のパスワードテストにおいて使用|
 
+*employee4は未実装。
 
 ## 💻 技術スタック
 
