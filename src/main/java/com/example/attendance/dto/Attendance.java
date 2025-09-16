@@ -22,6 +22,15 @@ public class Attendance {
         this.checkOutTime = checkOutTime;
     }
     
+ // データベースから取得した勤怠記録を表現するためのコンストラクタ
+    public Attendance(int id, String userId, LocalDateTime checkInTime, LocalDateTime checkOutTime) {
+        this.id = id;
+        this.userId = userId;
+        this.checkInTime = checkInTime;
+        this.checkOutTime = checkOutTime;
+    }
+    
+    
     // 全てのフィールドを含むコンストラクタ（データベースから全データを取得する場合など）
     public Attendance(int id, String userId, LocalDateTime checkInTime, LocalDateTime checkOutTime, LocalDateTime createdAt) {
         this.id = id;

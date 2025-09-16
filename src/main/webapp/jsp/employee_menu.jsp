@@ -59,6 +59,20 @@ function handleLogout() {
      </div>
      
      <h2>あなたの勤怠履歴　/　Your Attendance History</h2>
+     
+     <form action="attendance" method="get" class="filter-form">
+        <input type="hidden" name="action" value="filter">
+        <div>
+            <label for="startDate">開始日：</label>
+            <input type="date" id="startDate" name="startDate" value="${param.startDate}">
+        </div>
+        <div>
+            <label for="endDate">終了日：</label>
+            <input type="date" id="endDate" name="endDate" value="${param.endDate}">
+        </div>
+        <button type="submit" class="button">フィルタ</button>
+    </form>
+    
      <table>
         <thead>
            <tr>

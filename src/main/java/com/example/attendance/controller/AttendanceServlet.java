@@ -30,7 +30,6 @@ public class AttendanceServlet extends HttpServlet {
     private final AttendanceDAO attendanceDAO = new AttendanceDAO();
     private final UserDAO userDAO = new UserDAO();
 
-    /** セッションのメッセージを request に移す */
     private void transferSessionMessageToRequest(HttpSession session, HttpServletRequest request) {
         if (session == null) return;
         Object success = session.getAttribute("successMessage");
@@ -72,6 +71,7 @@ public class AttendanceServlet extends HttpServlet {
             if ("admin".equals(user.getRole())) {
                 handleAdminGet(request, response);
             } else {
+                // 従業員画面のGETリクエストは、アクションに関わらずこのメソッドで処理
                 handleEmployeeGet(request, response, user);
             }
         } catch (Exception e) {
@@ -128,7 +128,6 @@ public class AttendanceServlet extends HttpServlet {
         } catch (UserOperationException e) {
             session.setAttribute("script", "alert('" + e.getMessage() + "');");
         } catch (Exception e) {
-            // ユーザーが直せないシステム例外は error.jsp
             e.printStackTrace();
             request.setAttribute("errorMessage", "予期せぬシステムエラーが発生しました: " + e.getMessage());
             RequestDispatcher rd = request.getRequestDispatcher("/jsp/error.jsp");
@@ -136,7 +135,6 @@ public class AttendanceServlet extends HttpServlet {
             return;
         }
 
-        // リダイレクト（PRGパターン）
         if ("admin".equals(user.getRole())) {
             response.sendRedirect(request.getContextPath() + "/attendance?action=filter");
         } else {
@@ -185,14 +183,38 @@ public class AttendanceServlet extends HttpServlet {
 
     private void handleEmployeeGet(HttpServletRequest request, HttpServletResponse response, User user) throws ServletException, IOException {
         String userId = user.getUsername();
-        List<Attendance> userRecords = attendanceDAO.findByUserId(userId);
-        Attendance latestRecord = userRecords.isEmpty() ? null : userRecords.get(0);
+        
+        // 絞り込み用のパラメータを取得
+        String startDateStr = request.getParameter("startDate");
+        String endDateStr = request.getParameter("endDate");
 
-        LocalDate endDate = LocalDate.now();
-        LocalDate startDate = endDate.minusMonths(5).withDayOfMonth(1);
+        LocalDate startDate = null;
+        LocalDate endDate = null;
 
-        Map<String, Double> monthlyWorkingHours = attendanceDAO.getMonthlyWorkingHours(userId, startDate, endDate);
-        Map<String, Long> monthlyCheckInCounts = attendanceDAO.getMonthlyCheckInCounts(userId, startDate, endDate);
+        try {
+            if (startDateStr != null && !startDateStr.isEmpty()) {
+                startDate = LocalDate.parse(startDateStr);
+            }
+            if (endDateStr != null && !endDateStr.isEmpty()) {
+                endDate = LocalDate.parse(endDateStr);
+            }
+        } catch (DateTimeParseException e) {
+            request.setAttribute("errorMessage", "日付の形式が不正です。");
+            RequestDispatcher rd = request.getRequestDispatcher("/jsp/employee_menu.jsp");
+            rd.forward(request, response);
+            return;
+        }
+
+        // 絞り込み条件を考慮して勤怠記録を取得
+        List<Attendance> userRecords = attendanceDAO.findFilteredRecords(userId, startDate, endDate);
+        // 最新の記録は、絞り込み条件とは関係なく取得
+        Attendance latestRecord = attendanceDAO.getLatestRecord(userId);
+
+        LocalDate graphEndDate = LocalDate.now();
+        LocalDate graphStartDate = graphEndDate.minusMonths(5).withDayOfMonth(1);
+        
+        Map<String, Double> monthlyWorkingHours = attendanceDAO.getMonthlyWorkingHours(userId, graphStartDate, graphEndDate);
+        Map<String, Long> monthlyCheckInCounts = attendanceDAO.getMonthlyCheckInCounts(userId, graphStartDate, graphEndDate);
 
         request.setAttribute("attendanceRecords", userRecords);
         request.setAttribute("latestRecord", latestRecord);
@@ -200,11 +222,13 @@ public class AttendanceServlet extends HttpServlet {
         request.setAttribute("monthlyCheckInCounts", monthlyCheckInCounts);
         request.setAttribute("hoursPercentage", calculatePercentage(monthlyWorkingHours, 160.0));
         request.setAttribute("daysPercentage", calculatePercentageLong(monthlyCheckInCounts, 20L));
+        request.setAttribute("startDate", startDateStr);
+        request.setAttribute("endDate", endDateStr);
 
         RequestDispatcher rd = request.getRequestDispatcher("/jsp/employee_menu.jsp");
         rd.forward(request, response);
     }
-
+    
     // ========================== ヘルパーメソッド ==========================
     private Map<String, Double> calculatePercentage(Map<String, Double> data, double standard) {
         Map<String, Double> result = new HashMap<>();
