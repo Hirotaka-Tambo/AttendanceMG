@@ -128,10 +128,10 @@
             document.getElementById('usernameError').innerText = '! ユーザーIDを入力してください。';
             isValid = false;
         } else if (username.length > 10) {
-            document.getElementById('usernameError').innerText = 'ユーザー名は10文字以内で入力してください。';
+            document.getElementById('usernameError').innerText = 'ユーザーIDは10文字以内で入力してください。';
             isValid = false;
         } else if (!/^[a-zA-Z0-9]+$/.test(username)) {
-            document.getElementById('usernameError').innerText = 'ユーザー名は半角英数字のみ使用できます。';
+            document.getElementById('usernameError').innerText = 'ユーザーIDは半角英数字のみ使用できます。';
             isValid = false;
         }
 
