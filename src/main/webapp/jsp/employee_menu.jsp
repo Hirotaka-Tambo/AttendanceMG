@@ -30,6 +30,20 @@ function handleLogout() {
         return confirm('ログアウトしますか？\nLog out?');
     }
 }
+
+//勤務履歴の表示/非表示を切り替える関数
+function toggleAttendanceHistory() {
+    const table = document.getElementById('attendanceHistoryTable');
+    const button = document.getElementById('toggleButton');
+    if (table.style.display === 'none') {
+        table.style.display = 'table';
+        button.textContent = '勤務履歴を非表示にする';
+    } else {
+        table.style.display = 'none';
+        button.textContent = '勤務履歴を表示する';
+    }
+}
+</script>
 </script>
 </head>
 <body>
@@ -59,6 +73,9 @@ function handleLogout() {
      </div>
      
      <h2>あなたの勤怠履歴　/　Your Attendance History</h2>
+     <div class="button-group">
+         <button id="toggleButton" onclick="toggleAttendanceHistory()" class="button">勤務履歴を表示する</button>
+     </div>
      
      <form action="attendance" method="get" class="filter-form">
         <input type="hidden" name="action" value="filter">
