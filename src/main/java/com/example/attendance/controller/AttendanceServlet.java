@@ -165,6 +165,8 @@ public class AttendanceServlet extends HttpServlet {
 
         LocalDate startDate = null;
         LocalDate endDate = null;
+        
+        
 
         try {
             if (startDateStr != null && !startDateStr.isEmpty()) startDate = LocalDate.parse(startDateStr);
@@ -180,17 +182,25 @@ public class AttendanceServlet extends HttpServlet {
         request.setAttribute("allAttendanceRecords", allRecords);
 
         Map<String, Double> totalHoursByUser = attendanceDAO.getTotalWorkingHoursByUsers(filterUserId, startDate, endDate);
+        
+        // グラフで利用する情報
         Map<String, Double> monthlyWorkingHours = attendanceDAO.getMonthlyWorkingHours(filterUserId, startDate, endDate);
         Map<String, Long> monthlyCheckInCounts = attendanceDAO.getMonthlyCheckInCounts(filterUserId, startDate, endDate);
 
         request.setAttribute("totalHoursByUser", totalHoursByUser);
         request.setAttribute("monthlyWorkingHours", monthlyWorkingHours);
         request.setAttribute("monthlyCheckInCounts", monthlyCheckInCounts);
-
         request.setAttribute("hoursPercentage", calculatePercentage(monthlyWorkingHours, 160.0));
         request.setAttribute("daysPercentage", calculatePercentageLong(monthlyCheckInCounts, 20L));
-
         request.setAttribute("userList", userDAO.getAllUsers());
+        
+        // 標準値とパーセンテージを計算・セット
+        double standardHours = 160.0;
+        long standardDays = 20L;
+        request.setAttribute("standardHours", standardHours);
+        request.setAttribute("standardDays", standardDays);
+        request.setAttribute("hoursPercentage", calculatePercentage(monthlyWorkingHours, standardHours));
+        request.setAttribute("daysPercentage", calculatePercentageLong(monthlyCheckInCounts, standardDays));
 
         RequestDispatcher rd = request.getRequestDispatcher("/jsp/admin_menu.jsp");
         rd.forward(request, response);
@@ -235,10 +245,14 @@ public class AttendanceServlet extends HttpServlet {
         request.setAttribute("latestRecord", latestRecord);
         request.setAttribute("monthlyWorkingHours", monthlyWorkingHours);
         request.setAttribute("monthlyCheckInCounts", monthlyCheckInCounts);
-        request.setAttribute("hoursPercentage", calculatePercentage(monthlyWorkingHours, 160.0));
-        request.setAttribute("daysPercentage", calculatePercentageLong(monthlyCheckInCounts, 20L));
-        request.setAttribute("startDate", startDateStr);
-        request.setAttribute("endDate", endDateStr);
+        
+        // 標準値とパーセンテージを計算・セット
+        double standardHours = 160.0;
+        long standardDays = 20L;
+        request.setAttribute("standardHours", standardHours);
+        request.setAttribute("standardDays", standardDays);
+        request.setAttribute("hoursPercentage", calculatePercentage(monthlyWorkingHours, standardHours));
+        request.setAttribute("daysPercentage", calculatePercentageLong(monthlyCheckInCounts, standardDays));
 
         RequestDispatcher rd = request.getRequestDispatcher("/jsp/employee_menu.jsp");
         rd.forward(request, response);
