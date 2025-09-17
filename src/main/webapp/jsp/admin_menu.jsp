@@ -16,9 +16,10 @@
         // alert()を実行
         eval(script);
     }
-        // alert()の実行後、セッションから属性を削除
+ </script>
+        <!-- alert()の実行後、セッションから属性を削除 --> 
         <% session.removeAttribute("script"); %>
-
+<script>
     function handleLogout() {
         return confirm('ログアウトしますか？');
     }
@@ -48,6 +49,11 @@
         <p class="success-message">${sessionScope.successMessage}</p>
         <c:remove var="successMessage" scope="session"/>
     </c:if>
+    
+    <c:if test="${not empty sessionScope.errorMessage}">
+        <p class="error-message">${sessionScope.errorMessage}</p>
+        <c:remove var="errorMessage" scope="session"/>
+    </c:if>
 
     <h2>勤怠履歴</h2>
     <form action="attendance" method="get" class="filter-form">
@@ -66,8 +72,6 @@
         </div>
         <button type="submit" class="button">フィルタ</button>
     </form>
-
-    <p class="error-message">${errorMessage}</p>
 
     <a href="attendance?action=export_csv&filterUserId=${param.filterUserId}&startDate=${param.startDate}&endDate=${param.endDate}" class="button">
         勤怠履歴をエクスポート

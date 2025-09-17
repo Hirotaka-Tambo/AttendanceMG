@@ -31,28 +31,6 @@ public class AttendanceServlet extends HttpServlet {
     private final AttendanceDAO attendanceDAO = new AttendanceDAO();
     private final UserDAO userDAO = new UserDAO();
 
-    private void transferSessionMessageToRequest(HttpSession session, HttpServletRequest request) {
-        if (session == null) return;
-
-        Object success = session.getAttribute("successMessage");
-        if (success != null) {
-            request.setAttribute("successMessage", success);
-            session.removeAttribute("successMessage");
-        }
-
-        Object error = session.getAttribute("errorMessage");
-        if (error != null) {
-            request.setAttribute("errorMessage", error);
-            session.removeAttribute("errorMessage");
-        }
-
-        Object script = session.getAttribute("script");
-        if (script != null) {
-            request.setAttribute("script", script);
-            session.removeAttribute("script");
-        }
-    }
-
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -64,8 +42,6 @@ public class AttendanceServlet extends HttpServlet {
             response.sendRedirect("login.jsp");
             return;
         }
-
-        transferSessionMessageToRequest(session, request);
 
         try {
             String action = request.getParameter("action");
@@ -234,8 +210,6 @@ public class AttendanceServlet extends HttpServlet {
         request.setAttribute("standardDays", standardDays);
         request.setAttribute("hoursPercentage", calculatePercentage(monthlyWorkingHours, standardHours));
         request.setAttribute("daysPercentage", calculatePercentageLong(monthlyCheckInCounts, standardDays));
-
-        transferSessionMessageToRequest(session, request);
         
         RequestDispatcher rd = request.getRequestDispatcher("/jsp/admin_menu.jsp");
         rd.forward(request, response);
@@ -293,7 +267,6 @@ public class AttendanceServlet extends HttpServlet {
         request.setAttribute("hoursPercentage", calculatePercentage(monthlyWorkingHours, standardHours));
         request.setAttribute("daysPercentage", calculatePercentageLong(monthlyCheckInCounts, standardDays));
 
-        transferSessionMessageToRequest(session, request);
         
         RequestDispatcher rd = request.getRequestDispatcher("/jsp/employee_menu.jsp");
         rd.forward(request, response);
@@ -317,7 +290,7 @@ public class AttendanceServlet extends HttpServlet {
         return result;
     }
 
-    // ================= 手動勤怠処理 =================
+    // 手動勤怠処理
 
     private void handleAddManual(HttpServletRequest request, HttpSession session, String targetUserId)
             throws UserOperationException {
@@ -387,7 +360,7 @@ public class AttendanceServlet extends HttpServlet {
         return attendanceDAO.deleteManualAttendance(attendanceId);
     }
 
-    // ================= CSV出力 =================
+    // CSV出力
 
     private void exportCsv(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setContentType("text/csv; charset=UTF-8");
