@@ -63,8 +63,11 @@
     <input type="hidden" name="username" value="${userToEdit.username}">
     <p>
         <label for="newPassword">新しいパスワード:</label>
-        <input type="password" id="newPassword" name="newPassword" required pattern="[a-zA-Z]{5,10}" 
-        title="パスワードは5〜10文字の半角アルファベットで入力してください。" placeholder="5〜10文字の半角アルファベットで入力してください。">
+        <input type="password" id="newPassword" name="newPassword" required
+        pattern="^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,20}$"
+        title="8〜20文字で、大文字・小文字・数字・記号をすべて含む必要があります。"
+        placeholder="8~20文字かつ大文字・小文字・数字・記号の全てを含んでください。 例: Abcd1234!">
+        
         <span id="newPasswordError" class="error-message"></span>
     </p>
     <div class="button-group">
@@ -91,13 +94,23 @@
         if (newPassword === '') {
             document.getElementById('newPasswordError').innerText = '! パスワードを入力してください。';
             isValid = false;
-        } else if (newPassword.length < 5 || newPassword.length > 10) {
-            document.getElementById('newPasswordError').innerText = 'パスワードは5〜10文字で入力してください。';
+        } else if (newPassword.length < 8 || newPassword.length > 20) {
+            document.getElementById('newPasswordError').innerText = 'パスワードは8〜20文字で入力してください。';
             isValid = false;
-        } else if (!/^[a-zA-Z]+$/.test(newPassword)) {
-            document.getElementById('newPasswordError').innerText = 'パスワードは半角アルファベットのみ使用できます。';
+        } else if (!/[A-Z]/.test(newPassword)) {
+            document.getElementById('newPasswordError').innerText = 'パスワードには大文字を含めてください。';
+            isValid = false;
+        } else if (!/[a-z]/.test(newPassword)) {
+            document.getElementById('newPasswordError').innerText = 'パスワードには小文字を含めてください。';
+            isValid = false;
+        } else if (!/[0-9]/.test(newPassword)) {
+            document.getElementById('newPasswordError').innerText = 'パスワードには数字を含めてください。';
+            isValid = false;
+        } else if (!/[^a-zA-Z0-9]/.test(newPassword)) {
+            document.getElementById('newPasswordError').innerText = 'パスワードには記号を含めてください。';
             isValid = false;
         }
+                
 
         if (isValid) {
             return confirm('本当にパスワードをリセットしますか？');

@@ -138,7 +138,7 @@ public class UserServlet extends HttpServlet {
             return;
         }
         if (!isValidPassword(password)) {
-            session.setAttribute("errorMessage", "パスワードは5〜10文字の半角アルファベットで入力してください。");
+            session.setAttribute("errorMessage", "パスワードは8〜20文字で、大文字・小文字・数字・記号を含めてください。");
             return;
         }
         if (userDAO.findByUsername(username) != null) {
@@ -171,13 +171,19 @@ public class UserServlet extends HttpServlet {
     /** パスワードリセット処理 */
     private void handleResetPassword(HttpServletRequest request, HttpSession session, String username) throws Exception {
         String newPassword = request.getParameter("newPassword");
+
         if (!isValidPassword(newPassword)) {
-            session.setAttribute("errorMessage", "新しいパスワードは5〜10文字の半角アルファベットで入力してください。");
+            session.setAttribute("errorMessage", 
+                "新しいパスワードは8〜20文字で、大文字・小文字・数字・記号を含めてください。");
             return;
         }
+
         userDAO.resetPassword(username, newPassword);
-        session.setAttribute("script", "alert('ユーザー「" + username + "」のパスワードをリセットしました。');");
+        session.setAttribute("script", 
+            "alert('ユーザー「" + username + "」のパスワードをリセットしました。');");
     }
+
+    
 
     /** ユーザー削除処理 */
     private void handleDeleteUser(HttpServletRequest request, HttpSession session, String username) throws Exception {
@@ -192,8 +198,20 @@ public class UserServlet extends HttpServlet {
 
     /** パスワードバリデーション */
     private boolean isValidPassword(String password) {
-        return password != null && password.length() >= 5 && password.length() <= 10 && password.matches("^[a-zA-Z]+$");
+        if (password == null) return false;
+
+        // 8〜20文字
+        if (password.length() < 8 || password.length() > 20) return false;
+
+        // 大文字・小文字・数字・記号を最低1種類ずつ含む
+        boolean hasUpper = password.matches(".*[A-Z].*");
+        boolean hasLower = password.matches(".*[a-z].*");
+        boolean hasDigit = password.matches(".*[0-9].*");
+        boolean hasSymbol = password.matches(".*[^a-zA-Z0-9].*");
+
+        return hasUpper && hasLower && hasDigit && hasSymbol;
     }
+
 
     /** パスワード＋ソルトをSHA-256でハッシュ化 */
     private String hashPassword(String password, String salt) {

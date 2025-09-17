@@ -94,7 +94,7 @@
     
         <p>
            <label for="password">パスワード:</label>
-           <input type="password" id="password" name="password" required placeholder="5〜10文字の半角アルファベットで入力してください。">
+           <input type="password" id="password" name="password" required placeholder="8~20文字かつ大文字・小文字・数字・記号の全てを含んでください。 例: Abcd1234!">
            <span id="passwordError" class="error-message"></span>
         </p>
         <p>
@@ -139,13 +139,23 @@
         if (password === '') {
             document.getElementById('passwordError').innerText = '! パスワードを入力してください。';
             isValid = false;
-        } else if (password.length < 5 || password.length > 10) {
-            document.getElementById('passwordError').innerText = 'パスワードは5〜10文字で入力してください。';
+        } else if (password.length < 8 || password.length > 20) {
+            document.getElementById('passwordError').innerText = 'パスワードは8〜20文字で入力してください。';
             isValid = false;
-        } else if (!/^[a-zA-Z]+$/.test(password)) {
-            document.getElementById('passwordError').innerText = 'パスワードは半角アルファベットのみ使用できます。';
+        } else if (!/[A-Z]/.test(password)) {
+            document.getElementById('passwordError').innerText = 'パスワードには大文字を含めてください。';
+            isValid = false;
+        } else if (!/[a-z]/.test(password)) {
+            document.getElementById('passwordError').innerText = 'パスワードには小文字を含めてください。';
+            isValid = false;
+        } else if (!/[0-9]/.test(password)) {
+            document.getElementById('passwordError').innerText = 'パスワードには数字を含めてください。';
+            isValid = false;
+        } else if (!/[^a-zA-Z0-9]/.test(password)) {
+            document.getElementById('passwordError').innerText = 'パスワードには記号を含めてください。';
             isValid = false;
         }
+        
 
         // バリデーションが全て成功したらtrueを返す
         if (isValid) {
