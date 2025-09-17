@@ -9,6 +9,7 @@ import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
@@ -102,11 +103,11 @@ public class AttendanceServlet extends HttpServlet {
             switch (action) {
                 case "check_in":
                     attendanceDAO.checkIn(user.getUsername());
-                    session.setAttribute("script", "alert('出勤を記録しました');");
+                    request.setAttribute("script", "alert('出勤を記録しました');");
                     break;
                 case "check_out":
                     attendanceDAO.checkOut(user.getUsername());
-                    session.setAttribute("script", "alert('退勤を記録しました');");
+                    request.setAttribute("script", "alert('退勤を記録しました');");
                     break;
                 case "add_manual":
                     if (!"admin".equals(user.getRole())) break;
@@ -120,7 +121,7 @@ public class AttendanceServlet extends HttpServlet {
                     if (!"admin".equals(user.getRole())) break;
                     String attendanceIdStr = request.getParameter("attendanceId");
                     if (attendanceIdStr == null || attendanceIdStr.isEmpty()) {
-                        session.setAttribute("script", "alert('削除する勤怠記録が指定されていません。');");
+                        request.setAttribute("script", "alert('削除する勤怠記録が指定されていません。');");
                         break;
                     }
                     int attendanceId = Integer.parseInt(attendanceIdStr);
@@ -128,20 +129,20 @@ public class AttendanceServlet extends HttpServlet {
                     // handleDeleteManual メソッドを呼び出す
                     boolean deleted = handleDeleteManual(attendanceId);
                     if (deleted) {
-                        session.setAttribute("script", "alert('勤怠記録を削除しました。');");
+                        request.setAttribute("script", "alert('勤怠記録を削除しました。');");
                     } else {
-                        session.setAttribute("script", "alert('勤怠記録の削除に失敗しました。IDが見つからないか、データベースエラーです。');");
+                        request.setAttribute("script", "alert('勤怠記録の削除に失敗しました。IDが見つからないか、データベースエラーです。');");
                     }
                     break;
                 default:
-                    session.setAttribute("errorMessage", "不明な操作です。");
+                    request.setAttribute("errorMessage", "不明な操作です。");
             }
         } catch (DateTimeParseException e) {
-            session.setAttribute("script", "alert('日付/時刻の形式が不正です。');");
+            request.setAttribute("script", "alert('日付/時刻の形式が不正です。');");
         } catch (UserOperationException e) {
-            session.setAttribute("script", "alert('" + e.getMessage() + "');");
+            request.setAttribute("script", "alert('" + e.getMessage() + "');");
         }catch (NumberFormatException e) {
-            session.setAttribute("script", "alert('勤怠記録IDが不正です。');");
+            request.setAttribute("script", "alert('勤怠記録IDが不正です。');");
         } catch (Exception e) {
             e.printStackTrace();
             request.setAttribute("errorMessage", "予期せぬシステムエラーが発生しました: " + e.getMessage());
@@ -151,10 +152,13 @@ public class AttendanceServlet extends HttpServlet {
         }
 
         if ("admin".equals(user.getRole())) {
-            response.sendRedirect(request.getContextPath() + "/attendance?action=filter");
+            RequestDispatcher rd = request.getRequestDispatcher("/jsp/admin_menu.jsp");
+            rd.forward(request, response);
         } else {
-            response.sendRedirect(request.getContextPath() + "/attendance");
-        }
+            RequestDispatcher rd = request.getRequestDispatcher("/jsp/employee_menu.jsp");
+            rd.forward(request, response);
+        }   
+        
     }
 
     // 管理者/従業員 GET処理
@@ -184,8 +188,8 @@ public class AttendanceServlet extends HttpServlet {
         Map<String, Double> totalHoursByUser = attendanceDAO.getTotalWorkingHoursByUsers(filterUserId, startDate, endDate);
         
         // グラフで利用する情報
-        Map<String, Double> monthlyWorkingHours = attendanceDAO.getMonthlyWorkingHours(filterUserId, startDate, endDate);
-        Map<String, Long> monthlyCheckInCounts = attendanceDAO.getMonthlyCheckInCounts(filterUserId, startDate, endDate);
+        Map<String, Double> monthlyWorkingHours = new TreeMap<String, Double>(attendanceDAO.getMonthlyWorkingHours(filterUserId, startDate, endDate));
+        Map<String, Long> monthlyCheckInCounts = new TreeMap<String,Long>(attendanceDAO.getMonthlyCheckInCounts(filterUserId, startDate, endDate));
 
         request.setAttribute("totalHoursByUser", totalHoursByUser);
         request.setAttribute("monthlyWorkingHours", monthlyWorkingHours);
@@ -238,8 +242,8 @@ public class AttendanceServlet extends HttpServlet {
         LocalDate graphEndDate = LocalDate.now();
         LocalDate graphStartDate = graphEndDate.minusMonths(5).withDayOfMonth(1);
         
-        Map<String, Double> monthlyWorkingHours = attendanceDAO.getMonthlyWorkingHours(userId, graphStartDate, graphEndDate);
-        Map<String, Long> monthlyCheckInCounts = attendanceDAO.getMonthlyCheckInCounts(userId, graphStartDate, graphEndDate);
+        Map<String, Double> monthlyWorkingHours = new TreeMap<String, Double>(attendanceDAO.getMonthlyWorkingHours(userId, graphStartDate, graphEndDate));
+        Map<String, Long> monthlyCheckInCounts = new TreeMap<String, Long>(attendanceDAO.getMonthlyCheckInCounts(userId, graphStartDate, graphEndDate));
 
         request.setAttribute("attendanceRecords", userRecords);
         request.setAttribute("latestRecord", latestRecord);
@@ -281,7 +285,7 @@ public class AttendanceServlet extends HttpServlet {
         String checkOutStr = request.getParameter("checkOutTime");
 
         if (checkInStr == null || checkInStr.isEmpty()) {
-            session.setAttribute("script", "alert('出勤時間は必須です。');");
+            request.setAttribute("script", "alert('出勤時間は必須です。');");
             return;
         }
 
@@ -290,17 +294,17 @@ public class AttendanceServlet extends HttpServlet {
         LocalDateTime checkOut = (checkOutStr != null && !checkOutStr.isEmpty()) ? LocalDateTime.parse(checkOutStr, formatter) : null;
 
         if (checkOut != null && checkIn.isAfter(checkOut)) {
-            session.setAttribute("script", "alert('退勤時間は出勤時間より後である必要があります。');");
+            request.setAttribute("script", "alert('退勤時間は出勤時間より後である必要があります。');");
             return;
         }
 
         if (attendanceDAO.hasTimeOverlap(targetUserId, checkIn, checkOut)) {
-            session.setAttribute("script", "alert('入力された期間にすでに勤怠記録が存在します。');");
+            request.setAttribute("script", "alert('追加できませんでした。入力された期間にすでに勤怠記録が存在します。');");
             return;
         }
 
         attendanceDAO.addManualAttendance(targetUserId, checkIn, checkOut);
-        session.setAttribute("script", "alert('勤怠記録を手動で追加しました。');");
+        request.setAttribute("script", "alert('勤怠記録を手動で追加しました。');");
     }
 
     private void handleUpdateManual(HttpServletRequest request, HttpSession session, String targetUserId) throws UserOperationException {

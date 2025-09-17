@@ -58,7 +58,7 @@ function toggleAttendanceHistory() {
 <body>
   <div class="container">
      <h1>従業員メニュー　/　Your Menu</h1>
-     <p>ようこそ、${user.username}さん　　/　　Welcome　${user.username}!!</p>
+     <h3>ようこそ、${user.username}さん　　/　　Welcome　${user.username}!!</h3>
      
      <c:if test="${not empty sessionScope.successMessage}">
          <p class="success-message"><c:out value="${sessionScope.successMessage}"/></p>
@@ -140,6 +140,7 @@ function toggleAttendanceHistory() {
     <div class="chart-container">
         <div class="chart-section">
             <h4>月別労働時間（標準: ${standardHours}時間/1人）</h4>
+            <hr>
             <div class="bar-chart">
                 <c:forEach var="entry" items="${monthlyWorkingHours}">
                    <div class="bar-container">
@@ -160,6 +161,7 @@ function toggleAttendanceHistory() {
 
         <div class="chart-section">
             <h4>月別出勤日数（標準: ${standardDays}日/1人）</h4>
+            <hr>
             <div class="bar-chart">
                 <c:forEach var="entry" items="${monthlyCheckInCounts}">
                    <div class="bar-container">

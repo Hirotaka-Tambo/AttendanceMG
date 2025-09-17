@@ -37,7 +37,7 @@
 <body>
 <div class="container">
     <h1>勤怠履歴管理</h1>
-    <p>ようこそ、${user.username}さん(管理者)</p>
+    <h3>ようこそ、${user.username}さん(管理者)</h3>
 
     <div class="main-nav">
         <a href="attendance?action=filter">勤怠履歴管理</a>
@@ -99,6 +99,7 @@
 <div class="chart-container">
     <div class="chart-section">
         <h4>月別労働時間（標準: ${standardHours}時間/1人）</h4>
+        <hr>
         <div class="bar-chart">
             <c:forEach var="entry" items="${monthlyWorkingHours}">
                <div class="bar-container">
@@ -120,6 +121,7 @@
 
     <div class="chart-section">
         <h4>月別出勤日数（標準: ${standardDays}日/1人）</h4>
+        <hr>
         <div class="bar-chart">
             <c:forEach var="entry" items="${monthlyCheckInCounts}">
                <div class="bar-container">

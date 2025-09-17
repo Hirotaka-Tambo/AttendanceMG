@@ -343,9 +343,7 @@ public class AttendanceDAO {
         }
     }
 
-    /**
-     * 勤怠記録を更新する際に、更新対象の記録を除いて時間重複がないか確認
-     */
+   //勤怠記録を更新する際に、更新対象の記録を除いて時間重複がないか確認
     public boolean hasTimeOverlapForUpdate(String userId, LocalDateTime oldCheckIn,
                                          LocalDateTime newCheckIn, LocalDateTime newCheckOut) {
         String sql = "SELECT COUNT(*) FROM attendance " +
