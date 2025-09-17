@@ -15,10 +15,9 @@
     if (script && script.trim() !== "") {
         // alert()を実行
         eval(script);
-        // alert()の実行後、セッションから属性を削除
-        <c:remove var="script" scope="session"/>
     }
-};
+        // alert()の実行後、セッションから属性を削除
+        <% session.removeAttribute("script"); %>
 
     function handleLogout() {
         return confirm('ログアウトしますか？');
