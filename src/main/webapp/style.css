@@ -318,7 +318,7 @@ flex: 1;
 }
 
 .bar-chart .bar-container .bar {
-    width: 35px !important; /* 幅を固定 */
+    width: 35px !important; 
     min-height: 5px; /* 最小の高さを設定 */
     transition: height 0.5s ease;
     border-radius: 3px 3px 0 0;
