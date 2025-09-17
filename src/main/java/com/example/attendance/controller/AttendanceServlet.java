@@ -118,7 +118,20 @@ public class AttendanceServlet extends HttpServlet {
                     break;
                 case "delete_manual":
                     if (!"admin".equals(user.getRole())) break;
-                    handleDeleteManual(request, session, targetUserId);
+                    String attendanceIdStr = request.getParameter("attendanceId");
+                    if (attendanceIdStr == null || attendanceIdStr.isEmpty()) {
+                        session.setAttribute("script", "alert('削除する勤怠記録が指定されていません。');");
+                        break;
+                    }
+                    int attendanceId = Integer.parseInt(attendanceIdStr);
+                    
+                    // handleDeleteManual メソッドを呼び出す
+                    boolean deleted = handleDeleteManual(attendanceId);
+                    if (deleted) {
+                        session.setAttribute("script", "alert('勤怠記録を削除しました。');");
+                    } else {
+                        session.setAttribute("script", "alert('勤怠記録の削除に失敗しました。IDが見つからないか、データベースエラーです。');");
+                    }
                     break;
                 default:
                     session.setAttribute("errorMessage", "不明な操作です。");
@@ -127,6 +140,8 @@ public class AttendanceServlet extends HttpServlet {
             session.setAttribute("script", "alert('日付/時刻の形式が不正です。');");
         } catch (UserOperationException e) {
             session.setAttribute("script", "alert('" + e.getMessage() + "');");
+        }catch (NumberFormatException e) {
+            session.setAttribute("script", "alert('勤怠記録IDが不正です。');");
         } catch (Exception e) {
             e.printStackTrace();
             request.setAttribute("errorMessage", "予期せぬシステムエラーが発生しました: " + e.getMessage());
@@ -142,7 +157,7 @@ public class AttendanceServlet extends HttpServlet {
         }
     }
 
-    // ========================== 管理者/従業員 GET処理 ==========================
+    // 管理者/従業員 GET処理
     private void handleAdminGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String filterUserId = request.getParameter("filterUserId");
         String startDateStr = request.getParameter("startDate");
@@ -229,7 +244,7 @@ public class AttendanceServlet extends HttpServlet {
         rd.forward(request, response);
     }
     
-    // ========================== ヘルパーメソッド ==========================
+    // ヘルパーメソッド
     private Map<String, Double> calculatePercentage(Map<String, Double> data, double standard) {
         Map<String, Double> result = new HashMap<>();
         for (Map.Entry<String, Double> e : data.entrySet()) {
@@ -246,7 +261,7 @@ public class AttendanceServlet extends HttpServlet {
         return result;
     }
 
-    // ========================== 手動勤怠処理 ==========================
+    // 手動勤怠処理
     private void handleAddManual(HttpServletRequest request, HttpSession session, String targetUserId) throws UserOperationException {
         String checkInStr = request.getParameter("checkInTime");
         String checkOutStr = request.getParameter("checkOutTime");
@@ -302,20 +317,12 @@ public class AttendanceServlet extends HttpServlet {
         }
     }
 
-    private void handleDeleteManual(HttpServletRequest request, HttpSession session, String targetUserId) throws UserOperationException {
-        LocalDateTime checkIn = LocalDateTime.parse(request.getParameter("checkInTime"));
-        LocalDateTime checkOut = request.getParameter("checkOutTime") != null && !request.getParameter("checkOutTime").isEmpty()
-                ? LocalDateTime.parse(request.getParameter("checkOutTime"))
-                : null;
-
-        if (attendanceDAO.deleteManualAttendance(targetUserId, checkIn, checkOut)) {
-            session.setAttribute("script", "alert('勤怠記録を削除しました。');");
-        } else {
-            session.setAttribute("script", "alert('勤怠記録の削除に失敗しました。');");
-        }
+    
+    private boolean handleDeleteManual(int attendanceId) {
+        return attendanceDAO.deleteManualAttendance(attendanceId);
     }
 
-    // ========================== CSV 出力 ==========================
+    // CSV出力
     private void exportCsv(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setContentType("text/csv; charset=UTF-8");
         response.setHeader("Content-Disposition", "attachment;filename=\"attendance_records.csv\"");

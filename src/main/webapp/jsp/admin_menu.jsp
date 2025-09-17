@@ -23,6 +23,15 @@
     function handleLogout() {
         return confirm('ログアウトしますか？');
     }
+
+     // 削除確認と完了メッセージを制御する関数
+    function handleDeleteConfirmation() {
+        const confirmed = confirm('本当にこの勤怠記録を削除しますか？');
+        if (confirmed) {
+            return true; // フォーム送信
+        }
+        return false; // 送信キャンセル
+    }
 </script>
 </head>
 <body>
@@ -150,11 +159,11 @@
                     <td class="table-actions">
                         <form action="attendance" method="post" style="display:inline;">
                             <input type="hidden" name="action" value="delete_manual">
-                            <input type="hidden" name="userId" value="${att.userId}">
+                            <input type="hidden" name="attendanceId" value="${att.id}">
                             <input type="hidden" name="checkInTime" value="${att.checkInTime}">
                             <input type="hidden" name="checkOutTime" value="${att.checkOutTime}">
                             <input type="submit" value="削除" class="button danger"
-                                   onclick="return confirm('本当にこの勤怠記録を削除しますか?');">
+                                   onclick="return handleDeleteConfirmation();">
                         </form>
                     </td>
                 </tr>

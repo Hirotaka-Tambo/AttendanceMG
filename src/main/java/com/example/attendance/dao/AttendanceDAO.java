@@ -58,13 +58,14 @@ public class AttendanceDAO {
             pstmt.setString(1, userId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
+                	int id = rs.getInt("id");
                     Timestamp checkInTimestamp = rs.getTimestamp("check_in_time");
                     Timestamp checkOutTimestamp = rs.getTimestamp("check_out_time");
                     
                     LocalDateTime checkInTime = (checkInTimestamp != null) ? checkInTimestamp.toLocalDateTime() : null;
                     LocalDateTime checkOutTime = (checkOutTimestamp != null) ? checkOutTimestamp.toLocalDateTime() : null;
 
-                    attendanceList.add(new Attendance(rs.getString("user_id"), checkInTime, checkOutTime));
+                    attendanceList.add(new Attendance(id, rs.getString("user_id"), checkInTime, checkOutTime));
                 }
             }
         } catch (SQLException e) {
@@ -105,13 +106,14 @@ public class AttendanceDAO {
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
+                	int id = rs.getInt("id");
                     Timestamp checkInTimestamp = rs.getTimestamp("check_in_time");
                     Timestamp checkOutTimestamp = rs.getTimestamp("check_out_time");
 
                     LocalDateTime checkInTime = (checkInTimestamp != null) ? checkInTimestamp.toLocalDateTime() : null;
                     LocalDateTime checkOutTime = (checkOutTimestamp != null) ? checkOutTimestamp.toLocalDateTime() : null;
                     
-                    records.add(new Attendance(rs.getString("user_id"), checkInTime, checkOutTime));
+                    records.add(new Attendance(id, rs.getString("user_id"), checkInTime, checkOutTime));
                 }
             }
         } catch (SQLException e) {
@@ -299,31 +301,20 @@ public class AttendanceDAO {
         }
     }
 
-    // 勤怠記録の手動削除（管理者用）
-    public boolean deleteManualAttendance(String userId, LocalDateTime checkIn, LocalDateTime checkOut) throws UserOperationException{
-        String sql = "DELETE FROM attendance WHERE user_id = ? AND check_in_time = ?";
-        if (checkOut != null) {
-            sql += " AND check_out_time = ?";
-        } else {
-            sql += " AND check_out_time IS NULL";
-        }
+    // 勤怠記録の手動削除（管理者用)
+    public boolean deleteManualAttendance(int attendanceId) {
+        String sql = "DELETE FROM attendance WHERE id = ?";
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, userId);
-            pstmt.setTimestamp(2, Timestamp.valueOf(checkIn));
-            if (checkOut != null) {
-                pstmt.setTimestamp(3, Timestamp.valueOf(checkOut));
-            }
+
+            pstmt.setLong(1, attendanceId);
+            int rowsAffected = pstmt.executeUpdate();
             
-            boolean deleted = pstmt.executeUpdate() > 0;
-            if (!deleted) {
-                throw new UserOperationException("削除対象の勤怠が存在しません。");
-            }
-            return true;
+            return rowsAffected > 0;
 
         } catch (SQLException e) {
             e.printStackTrace();
-            throw new RuntimeException("手動での勤怠記録の削除に失敗しました。", e);
+            throw new RuntimeException("勤怠記録の削除に失敗しました。", e);
         }
     }
 
