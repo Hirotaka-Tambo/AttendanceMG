@@ -60,7 +60,8 @@
         <p class="error-message">${sessionScope.errorMessage}</p>
         <c:remove var="errorMessage" scope="session"/>
     </c:if>
-
+    
+   <div class="card">
     <h2>勤怠履歴</h2>
     <form action="attendance" method="get" class="filter-form">
         <input type="hidden" name="action" value="filter">
@@ -82,8 +83,10 @@
     <a href="attendance?action=export_csv&filterUserId=${param.filterUserId}&startDate=${param.startDate}&endDate=${param.endDate}" class="button">
         勤怠履歴をエクスポート
     </a>
+  </div>
 
-    <h3>勤怠サマリー(合計労働時間)</h3>
+  <div class="card">
+    <h2>合計労働時間</h2>
     <table class="summary-table">
         <thead>
             <tr>
@@ -103,10 +106,12 @@
             </c:if>
         </tbody>
     </table>
+   </div>
     
-    <h3>月別勤怠グラフ</h3>
-<div class="chart-container">
-    <div class="chart-section">
+   <div class="card"> 
+    <h2>月別勤怠グラフ</h2>
+    <div class="chart-container">
+      <div class="chart-section">
         <h4>月別労働時間（標準: ${standardHours}時間/1人）</h4>
         <hr>
         <div class="bar-chart">
@@ -145,11 +150,13 @@
             <c:if test="${empty monthlyCheckInCounts}">
                 <div class="no-data">データがありません。</div>
             </c:if>
-        </div>
-    </div>
-</div>
+         </div>
+      </div>
+     </div>
+   </div>
    
-    <h3>詳細勤怠履歴</h3>
+   <div class="card">
+    <h2>詳細勤怠履歴</h2>
     <table>
         <thead>
             <tr>
@@ -181,7 +188,9 @@
             </c:if>
         </tbody>
     </table>
+  </div>
 
+  <div class = "card">
     <h2>勤怠記録の手動追加</h2>
     <form action="attendance" method="post" onsubmit="return handleManualAddConfirmation();">
         <input type="hidden" name="action" value="add_manual">
@@ -201,6 +210,8 @@
             <input type="submit" value="追加">
         </div>
     </form>
+   </div> 
+    
 </div>
 </body>
 </html>

@@ -45,6 +45,7 @@
           <c:remove var="script" scope="session"/>
       </c:if>
       
+   <div class="card">
     <h2>従業員一覧</h2> 
     <table class="table">
        <thead>
@@ -82,7 +83,9 @@
           </c:forEach>
         </tbody>
       </table>
-      
+     </div>
+     
+    <div class="card">
       <h2>ユーザー追加</h2>
       <form action="users" method="post" onsubmit="return validateForm();">
          <input type="hidden" name="action" value="add_user">
@@ -110,6 +113,7 @@
         </div>
         
        </form>
+     </div>  
      
 </div>
 

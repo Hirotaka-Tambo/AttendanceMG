@@ -87,6 +87,7 @@ function toggleAttendanceHistory() {
      </div>
      
      <div id="historySection">
+     <div class="card">
      <form action="attendance" method="get" class="filter-form">
         <input type="hidden" name="action" value="filter">
         <div>
@@ -99,7 +100,10 @@ function toggleAttendanceHistory() {
         </div>
         <button type="submit" class="button">フィルタ</button>
     </form>
+    </div>
     
+    <div class="card">
+     <h2>詳細勤怠履歴の表示</h2>
      <table>
         <thead>
            <tr>
@@ -134,10 +138,11 @@ function toggleAttendanceHistory() {
            </c:if>
         </tbody>
        </table>
+     </div>
      
-     
-     <h3>月別勤怠グラフ</h3>
-    <div class="chart-container">
+     <div class="card">
+     <h2>月別勤怠グラフ</h2>
+     <div class="chart-container">
         <div class="chart-section">
             <h4>月別労働時間（標準: ${standardHours}時間/1人）</h4>
             <hr>
@@ -179,6 +184,7 @@ function toggleAttendanceHistory() {
                 </c:if>
             </div>
         </div>
+     </div>
     </div>
     </div>
      
