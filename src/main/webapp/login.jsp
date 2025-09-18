@@ -42,9 +42,10 @@
      <div class="card">
           <h2>審査会用ID/PASSWORD</h2>
           <h4>ID:::admin1       PASSWORD:::Admin##11</h4>
-          <h4>ID:::employee1    PASSWORD:::Empass%2%2</h4>
+          <h4>ID:::employee1    PASSWORD:::Empass%2%2 *出勤のままログアウト</h4>
           <h4>ID:::employee2    PASSWORD:::loYee33&&</h4>
-          <h4>ID:::employee3    PASSWORD:::Jugyo4!!4Staff</h4>
+          <h4>ID:::employee3    PASSWORD:::Jugyo4!!4Staff *無効化テスト用</h4>
+          <h4>ID:::あああ        PASSWORD:::pass *ID/PASSWORDテスト用</h4>
      </div>
      
      <footer class="footer">
