@@ -8,29 +8,40 @@
 <link rel="stylesheet" href="${pageContext.request.contextPath}/style.css">
 </head>
 <body>
-<div class = "container">
-<h1>勤怠管理システム</h1>
-<form action="login" method="post">
-   <p>
-     <label for="username">Your ID:</label>
-     <input type="text" id="username" name="username" required>
-   </p>
+   <div class = "container">
+     <h1>勤怠管理システム</h1>
+     <form action="login" method="post">
+       <p>
+       <label for="username">Your ID:</label>
+       <input type="text" id="username" name="username" required>
+       </p>
    
-   <p>
-     <label for="password">PassWord:</label>
-     <input type="password" id="password" name = "password" required>
-   </p>
+       <p>
+       <label for="password">PassWord:</label>
+       <input type="password" id="password" name = "password" required>
+       </p>
    
-   <div class = "button-group">
-   <input type = "submit" value = "ログイン">
-   </div>
-</form>
-<p class="error-message"><c:out value="${errorMessage}"/></p>
-<c:if test="${not empty sessionScope.successMessage}">
-   <p class="success-message">
-   <c:out value="${sessionScope.successMessage}"/></p>
-   <c:remove var="successMessage" scope="session"/>
- </c:if>
+       <div class = "button-group">
+           <input type = "submit" value = "ログイン">
+       </div>
+     </form>
+     
+     <p class="error-message"><c:out value="${errorMessage}"/></p>
+     <c:if test="${not empty sessionScope.successMessage}">
+         <p class="success-message">
+         <c:out value="${sessionScope.successMessage}"/></p>
+         <c:remove var="successMessage" scope="session"/>
+     </c:if>
+     
+     <br>
+     <div class="card">
+          <h2>審査会用ID/PASSWORD</h2>
+          <h4>ID:::admin1       PASSWORD:::Admin##11</h4>
+          <h4>ID:::employee1    PASSWORD:::Empass%2%2</h4>
+          <h4>ID:::employee2    PASSWORD:::loYee33&&</h4>
+          <h4>ID:::employee3    PASSWORD:::Jugyo4!!4Staff</h4>
+     </div>
+     
 
 </div>
 

@@ -3,8 +3,11 @@ package com.example.attendance.controller;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.sql.SQLException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import jakarta.servlet.RequestDispatcher;
@@ -285,10 +288,26 @@ public class UserServlet extends HttpServlet {
         }
     }
     
-    /** 勤務状況をJSON形式で返す新しいメソッド */
+    /* 勤務状況をJSON形式で返す新しいメソッド */
     private void handleGetWorkingStatus(HttpServletResponse response) throws IOException {
-        // データベースから最新の出勤者リストを取得
-        List<Attendance> workingUsers = attendanceDAO.findWorkingUsers();
+        // 空のリストを作成(例外処理対応のため)
+        List<Attendance> workingUsers = null;
+        try {
+        	//データベースから取り寄せ(DAOでの処理)
+        	workingUsers = attendanceDAO.findWorkingUsers();
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			//JSON形式でエラーレスポンスを返す
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "データベースエラーが発生しました。");
+            mapper.writeValue(response.getWriter(), error);
+            return;
+		}
 
         // JSON形式に変換してクライアントに返す
         response.setContentType("application/json");
