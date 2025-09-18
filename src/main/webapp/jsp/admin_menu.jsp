@@ -144,27 +144,46 @@
   </div>
 
   <div class="card">
-    <h2>合計労働時間</h2>
+    <h2>勤怠サマリー</h2>
     <table class="summary-table">
         <thead>
             <tr>
                 <th>ユーザーID</th>
                 <th>合計労働時間(時間)</th>
+                <c:if test="${not empty monthlyWorkingHours}">
+                    <c:forEach var="month" items="${monthlyWorkingHours}">
+                        <th>${month.key}月</th>
+                    </c:forEach>
+                </c:if>
             </tr>
         </thead>
         <tbody>
-            <c:forEach var="entry" items="${totalHoursByUser}">
-                <tr>
-                    <td>${entry.key}</td>
-                    <td><fmt:formatNumber value="${entry.value}" pattern="#.##"/></td>
-                </tr>
-            </c:forEach>
-            <c:if test="${empty totalHoursByUser}">
-                <tr><td colspan="2">データがありません</td></tr>
-            </c:if>
+            <c:choose>
+                <c:when test="${not empty totalHoursByUser}">
+                    <c:forEach var="entry" items="${totalHoursByUser}">
+                        <tr>
+                            <td>${entry.key}</td>
+                            <td><fmt:formatNumber value="${entry.value}" pattern="#.##"/></td>
+                            <c:set var="userMonthlyHours" value="${monthlyHoursByUser[entry.key]}" />
+                            <c:forEach var="month" items="${monthlyWorkingHours}">
+                                <td>
+                                    <c:if test="${userMonthlyHours != null && userMonthlyHours[month.key] != null}">
+                                        <fmt:formatNumber value="${userMonthlyHours[month.key]}" pattern="#.##"/>
+                                    </c:if>
+                                </td>
+                            </c:forEach>
+                        </tr>
+                    </c:forEach>
+                </c:when>
+                <c:otherwise>
+                    <tr><td colspan="<c:out value="${monthlyWorkingHours.size() + 2}"/>">データがありません</td></tr>
+                </c:otherwise>
+            </c:choose>
         </tbody>
     </table>
    </div>
+    
+       
     
    <div class="card"> 
     <h2>月別勤怠グラフ</h2>
@@ -181,7 +200,7 @@
                        <fmt:formatNumber value="${entry.value}" pattern="0.0" />h<br>
                        <small>(<fmt:formatNumber value="${hoursPercentage[entry.key]}" pattern="0" />%)</small>
                    </span>
-                   <span class="label">${entry.key}</span>
+                   <span class="label">${entry.key}月</span>
                 </div>
             </c:forEach>
             <c:if test="${empty monthlyWorkingHours}">

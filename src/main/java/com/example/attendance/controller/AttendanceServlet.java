@@ -6,6 +6,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -210,12 +212,26 @@ public class AttendanceServlet extends HttpServlet {
         Map<String, Long> monthlyCheckInCounts =
                 new TreeMap<>(attendanceDAO.getMonthlyCheckInCounts(filterUserId, startDate, endDate));
 
+        
+        // ユーザーごとの月別労働時間を取得するロジックを追加
+        Map<String, Map<String, Double>> monthlyHoursByUser = new HashMap<>();
+        Collection<User> allUsersCollection = userDAO.getAllUsers();
+        List<User> userList = new ArrayList<>(allUsersCollection);
+        
+        for (User u : userList) {
+            Map<String, Double> userMonthlyHours = new TreeMap<>(attendanceDAO.getMonthlyWorkingHours(u.getUsername(), startDate, endDate));
+            if (!userMonthlyHours.isEmpty()) {
+                monthlyHoursByUser.put(u.getUsername(), userMonthlyHours);
+            }
+        }
+        
         request.setAttribute("totalHoursByUser", totalHoursByUser);
         request.setAttribute("monthlyWorkingHours", monthlyWorkingHours);
         request.setAttribute("monthlyCheckInCounts", monthlyCheckInCounts);
         request.setAttribute("hoursPercentage", calculatePercentage(monthlyWorkingHours, 160.0));
         request.setAttribute("daysPercentage", calculatePercentageLong(monthlyCheckInCounts, 20L));
         request.setAttribute("userList", userDAO.getAllUsers());
+        request.setAttribute("monthlyHoursByUser", monthlyHoursByUser);
 
         double standardHours = 160.0;
         long standardDays = 20L;
@@ -226,10 +242,6 @@ public class AttendanceServlet extends HttpServlet {
         
         //JSPにフォワード(受け渡し)
         RequestDispatcher rd = request.getRequestDispatcher("/jsp/admin_menu.jsp");
-        System.out.println("DEBUG: latestRecord is " + latestRecord);
-        if (latestRecord != null) {
-            System.out.println("DEBUG: latestRecord.getCheckOutTime() is " + latestRecord.getCheckOutTime());
-        }
         rd.forward(request, response);
     }
 
@@ -276,10 +288,30 @@ public class AttendanceServlet extends HttpServlet {
                 new TreeMap<>(attendanceDAO.getMonthlyWorkingHours(userId, graphStartDate, graphEndDate));
         Map<String, Long> monthlyCheckInCounts =
                 new TreeMap<>(attendanceDAO.getMonthlyCheckInCounts(userId, graphStartDate, graphEndDate));
+        
+        
+        // 個人の月ごと(ユーザー絞り込み前の月別労働時間の表を表示するため)
+        Map<String, Map<String, Double>> monthlyHoursByUser = new HashMap<>();
+        
+        // UserDAO.getAllUsers()の戻り値の型をCollectionで受け取る
+        Collection<User> allUsersCollection = userDAO.getAllUsers();
+        // CollectionをListに変換
+        List<User> userList = new ArrayList<>(allUsersCollection);
+
+        
+        for (User u : userList) {
+         // ユーザーIDごとに月別労働時間を取得
+         Map<String, Double> userMonthlyHours = new TreeMap<>(attendanceDAO.getMonthlyWorkingHours(u.getUsername(), startDate, endDate));
+         if (!userMonthlyHours.isEmpty()) {
+             monthlyHoursByUser.put(u.getUsername(), userMonthlyHours);
+         }
+     }
 
         request.setAttribute("attendanceRecords", userRecords);
         request.setAttribute("monthlyWorkingHours", monthlyWorkingHours);
         request.setAttribute("monthlyCheckInCounts", monthlyCheckInCounts);
+        request.setAttribute("monthlyHoursByUser", monthlyHoursByUser);
+        request.setAttribute("userList", userList);
 
         double standardHours = 160.0;
         long standardDays = 20L;
