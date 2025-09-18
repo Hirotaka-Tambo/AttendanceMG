@@ -125,6 +125,9 @@ public class AttendanceServlet extends HttpServlet {
                 default:
                     session.setAttribute("errorMessage", "不明な操作です。");
             }
+            Attendance latestRecord = attendanceDAO.getLatestRecord(user.getUsername());
+            session.setAttribute("latestRecord", latestRecord);
+            
         } catch (DateTimeParseException e) {
             session.setAttribute("script", "alert('日付/時刻の形式が不正です。');");
         } catch (UserOperationException e) {
@@ -136,6 +139,7 @@ public class AttendanceServlet extends HttpServlet {
             session.setAttribute("errorMessage", "予期せぬシステムエラーが発生しました: " + e.getMessage());
             
         }
+       
         
         if ("admin".equals(user.getRole())) {
             // 現在のフィルタリング情報をセッションに保存
@@ -149,13 +153,21 @@ public class AttendanceServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/attendance");
         }
     }
+    
+    
 
-    // 管理者/従業員 GET処理
+    // 管理者/従業員 メソッド処理
 
     private void handleAdminGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
     	
     	HttpSession session = request.getSession(false);
+    	User user = (User) session.getAttribute("user");
+    	
+    	//管理者自身の出退勤
+        Attendance latestRecord = attendanceDAO.getLatestRecord(user.getUsername());
+        session.setAttribute("latestRecord", latestRecord); 
+        request.setAttribute("latestRecord", latestRecord);
 
         String filterUserId = request.getParameter("filterUserId");
         String startDateStr = request.getParameter("startDate");
@@ -189,6 +201,7 @@ public class AttendanceServlet extends HttpServlet {
 
         List<Attendance> allRecords = attendanceDAO.findFilteredRecords(filterUserId, startDate, endDate);
         request.setAttribute("allAttendanceRecords", allRecords);
+        
 
         Map<String, Double> totalHoursByUser = attendanceDAO.getTotalWorkingHoursByUsers(filterUserId, startDate, endDate);
 
@@ -211,7 +224,12 @@ public class AttendanceServlet extends HttpServlet {
         request.setAttribute("hoursPercentage", calculatePercentage(monthlyWorkingHours, standardHours));
         request.setAttribute("daysPercentage", calculatePercentageLong(monthlyCheckInCounts, standardDays));
         
+        //JSPにフォワード(受け渡し)
         RequestDispatcher rd = request.getRequestDispatcher("/jsp/admin_menu.jsp");
+        System.out.println("DEBUG: latestRecord is " + latestRecord);
+        if (latestRecord != null) {
+            System.out.println("DEBUG: latestRecord.getCheckOutTime() is " + latestRecord.getCheckOutTime());
+        }
         rd.forward(request, response);
     }
 
@@ -219,6 +237,11 @@ public class AttendanceServlet extends HttpServlet {
             throws ServletException, IOException {
     	HttpSession session = request.getSession(false);
         String userId = user.getUsername();
+        
+        // 最新の勤怠記録(保存先はsession)
+        Attendance latestRecord = attendanceDAO.getLatestRecord(userId);
+        session.setAttribute("latestRecord", latestRecord);
+        request.setAttribute("latestRecord", latestRecord);
 
         String startDateStr = request.getParameter("startDate");
         String endDateStr = request.getParameter("endDate");
@@ -245,7 +268,6 @@ public class AttendanceServlet extends HttpServlet {
         }
 
         List<Attendance> userRecords = attendanceDAO.findFilteredRecords(userId, startDate, endDate);
-        Attendance latestRecord = attendanceDAO.getLatestRecord(userId);
 
         LocalDate graphEndDate = LocalDate.now();
         LocalDate graphStartDate = graphEndDate.minusMonths(5).withDayOfMonth(1);
@@ -256,7 +278,6 @@ public class AttendanceServlet extends HttpServlet {
                 new TreeMap<>(attendanceDAO.getMonthlyCheckInCounts(userId, graphStartDate, graphEndDate));
 
         request.setAttribute("attendanceRecords", userRecords);
-        request.setAttribute("latestRecord", latestRecord);
         request.setAttribute("monthlyWorkingHours", monthlyWorkingHours);
         request.setAttribute("monthlyCheckInCounts", monthlyCheckInCounts);
 
@@ -272,7 +293,7 @@ public class AttendanceServlet extends HttpServlet {
         rd.forward(request, response);
     }
 
-    // ================= ヘルパーメソッド =================
+    // 計算メソッド(グラフ用)
 
     private Map<String, Double> calculatePercentage(Map<String, Double> data, double standard) {
         Map<String, Double> result = new HashMap<>();

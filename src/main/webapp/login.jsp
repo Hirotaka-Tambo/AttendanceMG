@@ -26,7 +26,11 @@
        </div>
      </form>
      
+     <%-- ログイン失敗時のエラーメッセージ --%>
      <p class="error-message"><c:out value="${errorMessage}"/></p>
+     
+     
+     <%-- 成功メッセージをセッションから取得して表示し、削除 --%>
      <c:if test="${not empty sessionScope.successMessage}">
          <p class="success-message">
          <c:out value="${sessionScope.successMessage}"/></p>
@@ -34,6 +38,7 @@
      </c:if>
      
      <br>
+     
      <div class="card">
           <h2>審査会用ID/PASSWORD</h2>
           <h4>ID:::admin1       PASSWORD:::Admin##11</h4>

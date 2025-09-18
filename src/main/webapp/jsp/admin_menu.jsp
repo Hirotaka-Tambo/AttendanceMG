@@ -20,9 +20,20 @@
         }
     };
 
+    
     function handleLogout() {
-        return confirm('ログアウトしますか？');
+        // JSPのC:ifタグを使って、サーバーサイドから未退勤情報を取得する
+        var isCheckedIn = <c:if test="${latestRecord != null && latestRecord.checkOutTime == null}">true</c:if><c:if test="${latestRecord == null || latestRecord.checkOutTime != null}">false</c:if>;
+
+        if (isCheckedIn) {
+            // 未退勤の場合、警告ダイアログを表示
+            return confirm('退勤していませんが、ログアウトしますか？\nAre you sure you want to log out without checking out?');
+        } else {
+            // 退勤済みの場合、通常の確認ダイアログを表示
+            return confirm('ログアウトしますか？\nLog out?');
+        }
     }
+    
 
      // 削除確認と完了メッセージを制御する関数
     function handleDeleteConfirmation() {
@@ -87,6 +98,26 @@
         <p class="error-message">${sessionScope.errorMessage}</p>
         <c:remove var="errorMessage" scope="session"/>
     </c:if>
+    
+    <div class = "card">
+    <h2>管理者自身の出勤/退勤ボタン</h2>
+    <div class="button-group">
+        <c:if test="${latestRecord != null && latestRecord.checkOutTime == null}">
+            <form action="attendance" method="post" class="inline-form" onsubmit="return confirm('退勤しますか？');">
+                <input type="hidden" name="action" value="check_out">
+                <input type="submit" value="退勤" class="button check-out">
+            </form>
+        </c:if>
+        
+        <c:if test="${latestRecord == null || latestRecord.checkOutTime != null}">
+            <form action="attendance" method="post" class="inline-form" onsubmit="return confirm('出勤しますか？');">
+                <input type="hidden" name="action" value="check_in">
+                <input type="submit" value="出勤" class="button check-in">
+            </form>
+        </c:if>
+     </div>
+    </div>
+    
     
    <div class="card">
     <h2>勤怠履歴</h2>
