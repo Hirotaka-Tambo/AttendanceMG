@@ -9,17 +9,17 @@
 <title>管理者メニュー</title>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/style.css">
 <script>
-　　window.onload = function() {
-    // セッションスコープに "script" という名前の属性があるかチェック
-    var script = "${sessionScope.script}";
-    if (script && script.trim() !== "") {
-        // alert()を実行
-        eval(script);
-    }
- </script>
-        <!-- alert()の実行後、セッションから属性を削除 --> 
-        <% session.removeAttribute("script"); %>
-<script>
+    window.onload = function() {
+        // セッションスコープに "script" という名前の属性があるかチェック
+        var script = "${sessionScope.script}";
+        if (script && script.trim() !== "") {
+            // alert()を実行
+            eval(script);
+            // ダイアログ表示後、メッセージが残らないようにセッションから削除
+            <c:remove var="script" scope="session"/>
+        }
+    };
+
     function handleLogout() {
         return confirm('ログアウトしますか？');
     }
@@ -31,6 +31,11 @@
             return true; // フォーム送信
         }
         return false; // 送信キャンセル
+    }
+
+    // 手動追加の確認関数
+    function handleManualAddConfirmation() {
+        return confirm('この内容で勤怠記録を追加しますか？');
     }
 </script>
 </head>
@@ -45,6 +50,7 @@
         <a href="logout" class="danger" onclick="return handleLogout();">ログアウト</a>
     </div>
 
+    <%-- 成功メッセージとエラーメッセージをセッションスコープから取得して表示 --%>
     <c:if test="${not empty sessionScope.successMessage}">
         <p class="success-message">${sessionScope.successMessage}</p>
         <c:remove var="successMessage" scope="session"/>
@@ -106,7 +112,6 @@
         <div class="bar-chart">
             <c:forEach var="entry" items="${monthlyWorkingHours}">
                <div class="bar-container">
-                   <!-- 固定の標準値（160時間）を基準に高さを計算 -->
                    <div class="bar hour-bar" 
                         style="height: ${(entry.value / standardHours) * 150}px;"></div>
                    <span class="value">
@@ -128,7 +133,6 @@
         <div class="bar-chart">
             <c:forEach var="entry" items="${monthlyCheckInCounts}">
                <div class="bar-container">
-                   <!-- 固定の標準値（20日）を基準に高さを計算 -->
                    <div class="bar count-bar" 
                         style="height: ${(entry.value / standardDays) * 150}px;"></div>
                    <span class="value">
@@ -162,13 +166,12 @@
                     <td>${att.checkInTimeStr}</td>
                     <td>${att.checkOutTimeStr}</td>
                     <td class="table-actions">
-                        <form action="attendance" method="post" style="display:inline;">
+                        <form action="attendance" method="post" style="display:inline;" onsubmit="return handleDeleteConfirmation();">
                             <input type="hidden" name="action" value="delete_manual">
                             <input type="hidden" name="attendanceId" value="${att.id}">
                             <input type="hidden" name="checkInTime" value="${att.checkInTime}">
                             <input type="hidden" name="checkOutTime" value="${att.checkOutTime}">
-                            <input type="submit" value="削除" class="button danger"
-                                   onclick="return handleDeleteConfirmation();">
+                            <input type="submit" value="削除" class="button danger">
                         </form>
                     </td>
                 </tr>
@@ -180,7 +183,7 @@
     </table>
 
     <h2>勤怠記録の手動追加</h2>
-    <form action="attendance" method="post">
+    <form action="attendance" method="post" onsubmit="return handleManualAddConfirmation();">
         <input type="hidden" name="action" value="add_manual">
         <p>
             <label for="manualUserId">ユーザーID:</label>
@@ -195,7 +198,7 @@
             <input type="datetime-local" id="manualCheckOutTime" name="checkOutTime">
         </p>
         <div class="button-group">
-            <input type="submit" value="追加" onclick="return confirm('この内容で勤怠記録を追加しますか？');">
+            <input type="submit" value="追加">
         </div>
     </form>
 </div>

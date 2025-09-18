@@ -21,7 +21,7 @@
 <body>
    <div class="container">
       <h1>ユーザー管理</h1>
-      <p>ようこそ、${user.username}さん(管理者)</p>
+      <h3>ようこそ、${user.username}さん(管理者)</h3>
       
       <div class="main-nav">
          <a href="attendance?action=filter">勤怠履歴管理</a>

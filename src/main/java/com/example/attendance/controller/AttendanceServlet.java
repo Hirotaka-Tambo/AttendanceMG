@@ -308,19 +308,17 @@ public class AttendanceServlet extends HttpServlet {
         LocalDateTime checkOut =
                 (checkOutStr != null && !checkOutStr.isEmpty()) ? LocalDateTime.parse(checkOutStr, formatter) : null;
 
+        // バリデーションチェック&&ダイアログ表示の分岐
         if (checkOut != null && checkIn.isAfter(checkOut)) {
             session.setAttribute("script", "alert('退勤時間は出勤時間より後である必要があります。');");
-            return;
-        }
-
-        if (attendanceDAO.hasTimeOverlap(targetUserId, checkIn, checkOut)) {
+        } else if (attendanceDAO.hasTimeOverlap(targetUserId, checkIn, checkOut)) {
             session.setAttribute("script",
                     "alert('追加できませんでした。入力された期間にすでに勤怠記録が存在します。');");
-            return;
+        } else {
+            // 全てのバリデーションを通過した場合のみ実行
+            attendanceDAO.addManualAttendance(targetUserId, checkIn, checkOut);
+            session.setAttribute("script", "alert('勤怠記録を手動で追加しました。');");
         }
-
-        attendanceDAO.addManualAttendance(targetUserId, checkIn, checkOut);
-        session.setAttribute("script", "alert('勤怠記録を手動で追加しました。');");
     }
 
     private void handleUpdateManual(HttpServletRequest request, HttpSession session, String targetUserId)
