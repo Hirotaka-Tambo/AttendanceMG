@@ -23,7 +23,7 @@ window.onload = function() {
         <c:remove var="script" scope="session"/>
     }
  // ページ読み込み時にボタンのテキストを「表示する」に設定
-        document.getElementById('toggleButton').textContent = '勤務履歴を表示する';
+        document.getElementById('toggleButton').textContent = '勤務履歴を表示　/　ON';
 };
 
 function handleLogout() {
@@ -47,10 +47,10 @@ function toggleAttendanceHistory() {
 
     if (historySection.style.display === 'none' || historySection.style.display === '') {
         historySection.style.display = 'block';
-        button.textContent = '勤務履歴を非表示にする';
+        button.textContent = '勤務履歴を非表示　/　OFF';
     } else {
         historySection.style.display = 'none';
-        button.textContent = '勤務履歴を表示する';
+        button.textContent = '勤務履歴を表示　/　ON';
     }
 }
 </script>
@@ -83,7 +83,7 @@ function toggleAttendanceHistory() {
      
      <h2>あなたの勤怠履歴　/　Your Attendance History</h2>
      <div class="button-group">
-         <button id="toggleButton" onclick="toggleAttendanceHistory()" class="button">勤務履歴を表示する</button>
+         <button id="toggleButton" onclick="toggleAttendanceHistory()" class="button">勤務履歴を表示　/ ON</button>
      </div>
      
      <div id="historySection">
@@ -91,11 +91,11 @@ function toggleAttendanceHistory() {
      <form action="attendance" method="get" class="filter-form">
         <input type="hidden" name="action" value="filter">
         <div>
-            <label for="startDate">開始日：</label>
+            <label for="startDate">開始日　/　Start Date：</label>
             <input type="date" id="startDate" name="startDate" value="${param.startDate}">
         </div>
         <div>
-            <label for="endDate">終了日：</label>
+            <label for="endDate">終了日 /　End Date：</label>
             <input type="date" id="endDate" name="endDate" value="${param.endDate}">
         </div>
         <button type="submit" class="button">フィルタ</button>
@@ -104,11 +104,12 @@ function toggleAttendanceHistory() {
     
     <div class="card">
      <h2>詳細勤怠履歴の表示</h2>
-     <table>
+     <table class="summary-table">
         <thead>
            <tr>
               <th>出勤時刻 /　Clock In</th>
               <th>退勤時刻 /　Clock Out</th>
+              <th>労働時間　/　Your Working Time</th>
            </tr>
         </thead>
         
@@ -116,25 +117,21 @@ function toggleAttendanceHistory() {
            <c:forEach var="att" items="${attendanceRecords}">
               <tr>
                  <td>
-                    <%
-                       com.example.attendance.dto.Attendance currentAtt = (com.example.attendance.dto.Attendance) pageContext.getAttribute("att");
-                       if (currentAtt.getCheckInTime() != null) {
-                           out.print(currentAtt.getCheckInTime().format(java.time.format.DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")));
-                       }
-                    %>
+                    <c:out value="${att.checkInTimeStr}" />
                  </td>
                  <td>
-                    <%
-                       if (currentAtt.getCheckOutTime() != null) {
-                           out.print(currentAtt.getCheckOutTime().format(java.time.format.DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")));
-                       }
-                    %>
+                    <c:out value="${att.checkOutTimeStr}" />
+                 </td>
+                 <td>
+                    <c:if test="${att.checkOutTime != null}">
+                        <fmt:formatNumber value="${att.workingHours}" pattern="#.##" />
+                    </c:if>
                  </td>
               </tr>
            </c:forEach>
            
            <c:if test="${empty attendanceRecords}">
-              <tr><td colspan="2">勤怠記録がありません。</td></tr>
+              <tr><td colspan="2">勤怠記録がありません。 Your data is not exist.</td></tr>
            </c:if>
         </tbody>
        </table>
@@ -144,7 +141,7 @@ function toggleAttendanceHistory() {
      <h2>月別勤怠グラフ</h2>
      <div class="chart-container">
         <div class="chart-section">
-            <h4>月別労働時間（標準: ${standardHours}時間/1人）</h4>
+            <h4>月別労働時間（標準: ${standardHours}時間/1人)<br>Monthly Working Hours</h4>
             <hr>
             <div class="bar-chart">
                 <c:forEach var="entry" items="${monthlyWorkingHours}">
@@ -165,7 +162,7 @@ function toggleAttendanceHistory() {
         </div>
 
         <div class="chart-section">
-            <h4>月別出勤日数（標準: ${standardDays}日/1人）</h4>
+            <h4>月別出勤日数（標準: ${standardDays}日/1人)<br>Monthly Check In Counts</h4>
             <hr>
             <div class="bar-chart">
                 <c:forEach var="entry" items="${monthlyCheckInCounts}">

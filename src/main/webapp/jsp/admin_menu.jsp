@@ -33,6 +33,33 @@
         return false; // 送信キャンセル
     }
 
+     // 編集フォーム表示の関数
+     function showEditForm(id, userId, checkInTime, checkOutTime) {
+        // 出勤時刻と退勤時刻のフォーマットを調整
+        // ISO 8601形式の 'YYYY-MM-DDTHH:mm' に変換
+        const formattedCheckIn = checkInTime.substring(0, 16);
+        const formattedCheckOut = checkOutTime ? checkOutTime.substring(0, 16) : '';
+
+        document.getElementById('edit-id').value = id;
+        document.getElementById('edit-userId').value = userId;
+        document.getElementById('edit-checkInTime').value = formattedCheckIn;
+        document.getElementById('edit-checkOutTime').value = formattedCheckOut;
+        
+     　　// フォーム要素を取得
+        const editFormCard = document.getElementById('editFormCard');
+        
+        // フォームを表示
+        editFormCard.style.display = 'block';
+
+        // フォームまでスムーズにスクロールする
+        editFormCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // 編集フォームを非表示にする関数
+    function hideEditForm() {
+        document.getElementById('editFormCard').style.display = 'none';
+    }
+     
     // 手動追加の確認関数
     function handleManualAddConfirmation() {
         return confirm('この内容で勤怠記録を追加しますか？');
@@ -157,12 +184,13 @@
    
    <div class="card">
     <h2>詳細勤怠履歴</h2>
-    <table>
+    <table class="summary-table">
         <thead>
             <tr>
                 <th>従業員ID</th>
                 <th>出勤時刻</th>
                 <th>退勤時刻</th>
+                <th>労働時間</th>
                 <th>操作</th>
             </tr>
         </thead>
@@ -172,19 +200,27 @@
                     <td>${att.userId}</td>
                     <td>${att.checkInTimeStr}</td>
                     <td>${att.checkOutTimeStr}</td>
+                    <td>
+                    <c:if test="${att.checkOutTime != null}">
+                        <fmt:formatNumber value="${att.workingHours}" pattern="#.##" />
+                    </c:if>
+                    </td>
                     <td class="table-actions">
-                        <form action="attendance" method="post" style="display:inline;" onsubmit="return handleDeleteConfirmation();">
-                            <input type="hidden" name="action" value="delete_manual">
-                            <input type="hidden" name="attendanceId" value="${att.id}">
-                            <input type="hidden" name="checkInTime" value="${att.checkInTime}">
-                            <input type="hidden" name="checkOutTime" value="${att.checkOutTime}">
-                            <input type="submit" value="削除" class="button danger">
-                        </form>
+                    <button class="button edit-button" onclick="showEditForm('${att.id}', '${att.userId}', '${att.checkInTime}', '${att.checkOutTime}')">
+                    更新
+                    </button>
+                     <form action="attendance" method="post" style="display:inline;" onsubmit="return handleDeleteConfirmation();">
+                       <input type="hidden" name="action" value="delete_manual">
+                       <input type="hidden" name="attendanceId" value="${att.id}">
+                       <input type="hidden" name="checkInTime" value="${att.checkInTime}">
+                       <input type="hidden" name="checkOutTime" value="${att.checkOutTime}">
+                       <input type="submit" value="削除" class="button danger">
+                     </form>
                     </td>
                 </tr>
             </c:forEach>
             <c:if test="${empty allAttendanceRecords}">
-                <tr><td colspan="4">データがありません</td></tr>
+                <tr><td colspan="5">データがありません</td></tr>
             </c:if>
         </tbody>
     </table>
@@ -211,6 +247,28 @@
         </div>
     </form>
    </div> 
+   
+   <div class="card" id="editFormCard" style="display:none;">
+    <h2>勤怠記録の手動更新</h2>
+    <form action="attendance" method="post">
+        <input type="hidden" name="action" value="update_manual">
+        <input type="hidden" name="attendanceId" id="edit-id">
+        <input type="hidden" name="targetUserId" id="edit-userId">
+        <p>
+            <label>出勤時刻:</label>
+            <input type="datetime-local" name="checkInTime" id="edit-checkInTime" required>
+        </p>
+        <p>
+            <label>退勤時刻:</label>
+            <input type="datetime-local" name="checkOutTime" id="edit-checkOutTime">
+        </p>
+        <div class="button-group">
+            <input type="submit" value="更新" class="button">
+            <button type="button" class="button" onclick="hideEditForm()">キャンセル</button>
+        </div>
+    </form>
+   </div>
+   
     
 </div>
 </body>

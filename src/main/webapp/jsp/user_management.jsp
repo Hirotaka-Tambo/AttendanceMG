@@ -52,6 +52,7 @@
         <tr>
             <th>従業員ID</th>
             <th>役割</th>
+            <th>アカウント</th>
             <th>アクション</th>
         </tr>
        </thead>
@@ -66,6 +67,18 @@
                    <c:otherwise>${u.role}</c:otherwise>
                 </c:choose>
             </td>
+            
+            <td>
+                <c:choose>
+                    <c:when test="${u.enabled}">
+                        <span style="color: green; font-weight: bold;">有効</span>
+                    </c:when>
+                    <c:otherwise>
+                        <span style="color: red; font-weight: bold;">無効</span>
+                    </c:otherwise>
+                </c:choose>
+            </td>
+            
             <td class="table-actions">
                <form action="users" method="get">
                   <input type="hidden" name="action" value="edit_user">
@@ -78,6 +91,15 @@
                     <input type="hidden" name="username" value="${u.username}">
                     <input type="submit" value="削除" class="button danger">
                 </form>
+                
+                <c:if test="${u.role != 'admin'}">
+                <form action="users" method="post" style="display:inline;" onsubmit="return confirm('ユーザー「${u.username}」を${u.enabled ? '無効化' : '有効化'}しますか？');">
+                    <input type="hidden" name="action" value="toggle_enabled">
+                    <input type="hidden" name="username" value="${u.username}">
+                    <input type="hidden" name="enabled" value="${u.enabled}">
+                    <input type="submit" value="${u.enabled ? '無効化' : '有効化'}" class="button ${u.enabled ? 'danger' : ''}">
+                </form>
+                </c:if>
             </td>
           </tr>
           </c:forEach>

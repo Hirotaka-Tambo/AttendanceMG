@@ -106,8 +106,12 @@ public class UserServlet extends HttpServlet {
                 case "delete_user":
                     handleDeleteUser(request, session, username);
                     break;
+                case "toggle_enabled":
+                	handleToggleEnabled(request, session, username);
+                	break;
                 default:
                     session.setAttribute("errorMessage", "不明な操作です。");
+                    break;
             }
 
         } catch (Exception e) {
@@ -183,20 +187,36 @@ public class UserServlet extends HttpServlet {
             "alert('ユーザー「" + username + "」のパスワードをリセットしました。');");
     }
 
-    
-
-    /** ユーザー削除処理 */
+    /* ユーザー削除処理 */
     private void handleDeleteUser(HttpServletRequest request, HttpSession session, String username) throws Exception {
         userDAO.deleteUser(username);
         session.setAttribute("script", "alert('ユーザー「" + username + "」を削除しました。');");
     }
+    
+    /* ユーザー無効化/有効化の切替 */
+    private void handleToggleEnabled(HttpServletRequest request, HttpSession session, String username) throws Exception {
+    	User user = userDAO.findByUsername(username);
 
-    /** ユーザー名バリデーション */
+        if (user != null) {
+            boolean newEnabledState = !user.isEnabled(); // 現在の状態を反転させる
+            
+            // DAOメソッドを呼び出してデータベースを更新
+            userDAO.toggleUserEnabled(username, newEnabledState);
+
+            // 成功メッセージをセット
+            String message = "ユーザー「" + username + "」を" + (newEnabledState ? "有効化" : "無効化") + "しました。";
+            session.setAttribute("script", "alert('" + message + "');");
+        } else {
+            session.setAttribute("errorMessage", "有効/無効を切り替えるユーザーが見つかりませんでした。");
+        }
+    }
+
+    /* ユーザー名バリデーション */
     private boolean isValidUsername(String username) {
         return username != null && username.length() <= 10 && username.matches("^[a-zA-Z0-9]+$");
     }
 
-    /** パスワードバリデーション */
+    /* パスワードバリデーション */
     private boolean isValidPassword(String password) {
         if (password == null) return false;
 
