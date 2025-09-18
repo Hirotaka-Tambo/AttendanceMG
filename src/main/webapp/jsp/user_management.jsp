@@ -8,14 +8,39 @@
 <title>ユーザー管理</title>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/style.css">
 <script>
-    window.onload = function() {
-        var script = "${sessionScope.script}";
-        if (script && script.trim() !== "") {
-            eval(script);
-            // ダイアログ表示後、メッセージが残らないようにセッションから削除
-            <c:remove var="script" scope="session"/>
-        }
-    };
+   //勤務状況を更新する関数
+   function updateWorkingStatus() {
+      fetch('users?action=get_working_status')
+        .then(response => response.json())
+        .then(workingUsers => {
+            const workingUserIds = new Set(workingUsers.map(user => user.userId));
+            const statusCells = document.querySelectorAll('.working-status-cell');
+            
+            statusCells.forEach(cell => {
+                const userId = cell.dataset.userId;
+                if (workingUserIds.has(userId)) {
+                    cell.innerHTML = '<span style="color: green; font-weight: bold;">出勤中</span>';
+                } else {
+                    cell.innerHTML = '<span style="color: red;">退勤</span>';
+                }
+            });
+        })
+        .catch(error => console.error('Error fetching working status:', error));
+   }
+
+   // ページ読み込み時に実行される処理
+   window.onload = function() {
+       // セッションメッセージの表示
+       var script = "${sessionScope.script}";
+       if (script && script.trim() !== "") {
+           eval(script);
+           <c:remove var="script" scope="session"/>
+       }
+
+       // 勤怠状況の初期表示と定期更新
+       updateWorkingStatus(); // 初回実行
+       setInterval(updateWorkingStatus, 5000); // 5秒ごとに実行
+   };
 </script>
 </head>
 <body>
@@ -52,6 +77,7 @@
         <tr>
             <th>従業員ID</th>
             <th>役割</th>
+            <th>勤務状況</th>
             <th>アカウント</th>
             <th>アクション</th>
         </tr>
@@ -65,6 +91,23 @@
                    <c:when test="${u.role == 'admin'}">管理者</c:when>
                    <c:when test="${u.role == 'employee'}">従業員</c:when>
                    <c:otherwise>${u.role}</c:otherwise>
+                </c:choose>
+            </td>
+            
+            <td class="working-status-cell" data-user-id="${u.username}">
+                <c:set var="isWorking" value="false" />
+                <c:forEach var="wUser" items="${workingUsers}">
+                    <c:if test="${wUser.userId == u.username}">
+                        <c:set var="isWorking" value="true" />
+                    </c:if>
+                </c:forEach>
+                <c:choose>
+                    <c:when test="${isWorking}">
+                        <span style="color: green; font-weight: bold;">出勤中</span>
+                    </c:when>
+                    <c:otherwise>
+                        <span style="color: red;">退勤</span>
+                    </c:otherwise>
                 </c:choose>
             </td>
             

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 import jakarta.servlet.RequestDispatcher;
@@ -14,12 +15,16 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
+import com.example.attendance.dao.AttendanceDAO;
 import com.example.attendance.dao.UserDAO;
+import com.example.attendance.dto.Attendance;
 import com.example.attendance.dto.User;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @WebServlet("/users")
 public class UserServlet extends HttpServlet {
     private final UserDAO userDAO = new UserDAO();
+    private final AttendanceDAO attendanceDAO = new AttendanceDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -43,10 +48,18 @@ public class UserServlet extends HttpServlet {
             if ("list".equals(action) || action == null) {
                 Collection<User> users = userDAO.getAllUsers();
                 request.setAttribute("userList", users);
+                
+             // --- リアルタイム勤怠情報の取得と設定（追加部分） ---
+             List<Attendance> workingUsers = attendanceDAO.findWorkingUsers();
+             request.setAttribute("workingUsers", workingUsers);
+                
+                
                 RequestDispatcher rd = request.getRequestDispatcher("/jsp/user_management.jsp");
                 rd.forward(request, response);
-
-            } else if ("edit_user".equals(action)) {
+                
+            }else if ("get_working_status".equals(action)) { 
+                handleGetWorkingStatus(response);
+            }  else if ("edit_user".equals(action)) {
                 String username = request.getParameter("username");
                 User userToEdit = userDAO.findByUsername(username);
                 if (userToEdit != null) {
@@ -232,7 +245,6 @@ public class UserServlet extends HttpServlet {
         return hasUpper && hasLower && hasDigit && hasSymbol;
     }
 
-
     /** パスワード＋ソルトをSHA-256でハッシュ化 */
     private String hashPassword(String password, String salt) {
         try {
@@ -271,5 +283,17 @@ public class UserServlet extends HttpServlet {
             request.setAttribute("script", script);
             session.removeAttribute("script");
         }
+    }
+    
+    /** 勤務状況をJSON形式で返す新しいメソッド */
+    private void handleGetWorkingStatus(HttpServletResponse response) throws IOException {
+        // データベースから最新の出勤者リストを取得
+        List<Attendance> workingUsers = attendanceDAO.findWorkingUsers();
+
+        // JSON形式に変換してクライアントに返す
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.writeValue(response.getWriter(), workingUsers);
     }
 }

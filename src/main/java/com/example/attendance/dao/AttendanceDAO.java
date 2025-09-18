@@ -368,10 +368,11 @@ public class AttendanceDAO {
         }
     }
 
-    /**
+    /*
      * 指定されたユーザーIDの最新の勤怠記録を1件取得します。
      * @param userId ユーザーID
      * @return 最新の勤怠記録、見つからない場合はnull
+     * 二重勤怠を防ぐため
      */
     public Attendance getLatestRecord(String userId) {
         String sql = "SELECT * FROM attendance WHERE user_id = ? ORDER BY check_in_time DESC LIMIT 1";
@@ -393,4 +394,32 @@ public class AttendanceDAO {
         }
         return null;
     }
+    
+    /**
+     * 勤務中のすべてのユーザーを取得する。
+     * @return 勤務中のAttendanceオブジェクトのリスト
+     * @throws SQLException
+     */
+    public List<Attendance> findWorkingUsers() throws SQLException {
+        List<Attendance> workingUsers = new ArrayList<>();
+        // punch_out_timeがNULLのレコードを検索
+        String sql = "SELECT * FROM attendance WHERE check_out_time IS NULL";
+
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            while (rs.next()) {
+                // Attendanceオブジェクトを生成し、リストに追加
+                Attendance attendance = new Attendance();
+                attendance.setId(rs.getInt("id"));
+                attendance.setUserId(rs.getString("user_id")); 
+                attendance.setCheckInTime(rs.getTimestamp("check_in_time").toLocalDateTime());
+                // punch_out_timeはNULLなので設定しない
+                workingUsers.add(attendance);
+            }
+        }
+        return workingUsers;
+    }
+    
 }
