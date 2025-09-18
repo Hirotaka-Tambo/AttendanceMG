@@ -180,6 +180,10 @@
        </form>
      </div>  
      
+     <footer class="footer">
+        <p>&copy; 2025 Hirotaka Tambo In/Out</p>
+    </footer>
+     
 </div>
 
 <script>

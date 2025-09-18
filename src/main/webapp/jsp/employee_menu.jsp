@@ -188,6 +188,10 @@ function toggleAttendanceHistory() {
      <div class="button-group">
         <a href="logout" class="button danger" onclick="return handleLogout();">ログアウト</a>
     </div>
+    
+    <footer class="footer">
+        <p>&copy; 2025 Hirotaka Tambo In/Out</p>
+    </footer>
      
   </div>
 </body>

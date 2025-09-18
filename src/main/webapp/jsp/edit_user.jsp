@@ -27,7 +27,7 @@
         <a href="users?action=list">ユーザー管理</a>
         <a href="logout" class="danger" onclick="return confirm('ログアウトしますか？');">ログアウト</a>
     </div>
-
+    
     <c:if test="${not empty requestScope.script}">
         <script>
             <c:out value="${requestScope.script}" escapeXml="false"/>
@@ -39,6 +39,7 @@
         <p class="error-message"><c:out value="${errorMessage}"/></p>
     </c:if>
 
+    <div class ="card">
     <h2>役割の変更</h2>
     <form action="users" method="post" onsubmit="return confirm('ユーザー「${userToEdit.username}」の役割を更新しますか？');">
         <input type="hidden" name="action" value="update_user">
@@ -54,14 +55,16 @@
             <input type="submit" value="役割を更新" class="button">
         </div>
     </form>
+    </div>
     
     <hr>
     
-    <h2>パスワードのリセット</h2>
-    <form action="users" method="post" onsubmit="return validatePasswordReset();">
-    <input type="hidden" name="action" value="reset_password">
-    <input type="hidden" name="username" value="${userToEdit.username}">
-    <p>
+    <div class ="card">
+       <h2>パスワードのリセット</h2>
+       <form action="users" method="post" onsubmit="return validatePasswordReset();">
+       <input type="hidden" name="action" value="reset_password">
+       <input type="hidden" name="username" value="${userToEdit.username}">
+      <p>
         <label for="newPassword">新しいパスワード:</label>
         <input type="password" id="newPassword" name="newPassword" required
         pattern="^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,20}$"
@@ -69,17 +72,22 @@
         placeholder="8~20文字かつ大文字・小文字・数字・記号の全てを含んでください。 例: Abcd1234!">
         
         <span id="newPasswordError" class="error-message"></span>
-    </p>
+      </p>
     <div class="button-group">
         <input type="submit" value="パスワードをリセット" class="button danger">
     </div>
     </form>
+    </div>
     
     <hr>
 
     <div class="button-group">
         <a href="users?action=list" class="button denger">ユーザー管理に戻る</a>
     </div>
+    
+    <footer class="footer">
+        <p>&copy; 2025 Hirotaka Tambo In/Out</p>
+    </footer>
 
 </div>
 

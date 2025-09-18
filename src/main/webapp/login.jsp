@@ -47,6 +47,9 @@
           <h4>ID:::employee3    PASSWORD:::Jugyo4!!4Staff</h4>
      </div>
      
+     <footer class="footer">
+        <p>&copy; 2025 Hirotaka Tambo In/Out</p>
+    </footer>
 
 </div>
 

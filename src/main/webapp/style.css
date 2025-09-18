@@ -425,3 +425,13 @@ input.button.check-out:hover {
     display: block; /* 新しい行に表示 */
     margin-top: 5px;
 }
+
+
+.footer {
+    text-align: center;
+    padding: 20px;
+    margin-top: 40px;
+    font-size: 0.8em;
+    color: #888;
+    border-top: 1px solid #ccc;
+}

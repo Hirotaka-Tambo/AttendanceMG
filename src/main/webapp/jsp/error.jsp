@@ -17,6 +17,11 @@
    <p>修復しない場合は、お手数ですが開発者までご連絡ください</p>
    <p>メールアドレス:~~~~~~~~~~~~~~~~</p>
    <a href="../login.jsp">ログインページに戻る</a>
+   
+   <br><hr><br>
+   <footer class="footer">
+        <p>&copy; 2025 Hirotaka Tambo In/Out</p>
+    </footer>
 
 </body>
 </html>
