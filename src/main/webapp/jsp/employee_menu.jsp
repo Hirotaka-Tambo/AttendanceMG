@@ -100,9 +100,7 @@ function toggleAttendanceHistory() {
         </div>
         <button type="submit" class="button">フィルタ</button>
     </form>
-    </div>
-    
-    <div class="card">
+   
      <h2>詳細勤怠履歴の表示</h2>
      <table class="summary-table">
         <thead>
