@@ -32,7 +32,7 @@ function handleLogout() {
 
     if (isCheckedIn) {
         // 未退勤の場合、警告ダイアログを表示
-        return confirm('退勤していませんが、ログアウトしますか？\nAre you sure you want to log out without checking out?');
+        return confirm("今日も一日お願いします!! 退勤時のログインを忘れずに!!\nWelcome! Let's have a great day. \nPlease remember to log out when you leave.");
     } else {
         // 退勤済みの場合、通常の確認ダイアログを表示
         return confirm('ログアウトしますか？\nLog out?');

@@ -374,6 +374,8 @@ public class AttendanceServlet extends HttpServlet {
         }
     }
 
+    // 手動による更新 
+    // *エラーが出るよ(旧:10:00~13:00/新:09:00~14:00)
     private void handleUpdateManual(HttpServletRequest request, HttpSession session, String targetUserId)
             throws UserOperationException {
 
