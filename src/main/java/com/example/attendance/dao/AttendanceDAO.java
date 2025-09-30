@@ -278,20 +278,20 @@ public class AttendanceDAO {
     }
     
     // 勤怠記録更新（管理者用）
-    public boolean updateManualAttendance(String userId, LocalDateTime oldCheckIn, LocalDateTime oldCheckOut,LocalDateTime newCheckIn,
+    public boolean updateManualAttendance(int attendanceId, String userId, LocalDateTime newCheckIn,
                                          LocalDateTime newCheckOut) throws UserOperationException {
         try {
-            if (hasTimeOverlapForUpdate(userId, oldCheckIn, newCheckIn, newCheckOut)) {
+            if (hasTimeOverlapForUpdate(attendanceId ,userId, newCheckIn, newCheckOut)) {
                 throw new UserOperationException("更新後の時間帯が既存の勤怠と重複しています。");
             }
 
-            String sql = "UPDATE attendance SET check_in_time = ?, check_out_time = ? WHERE user_id = ? AND check_in_time = ?";
+            String sql = "UPDATE attendance SET check_in_time = ?, check_out_time = ? WHERE user_id = ?";
             try (Connection conn = DBUtils.getConnection();
                  PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setTimestamp(1, Timestamp.valueOf(newCheckIn));
                 pstmt.setTimestamp(2, newCheckOut != null ? Timestamp.valueOf(newCheckOut) : null);
-                pstmt.setString(3, userId);
-                pstmt.setTimestamp(4, Timestamp.valueOf(oldCheckIn));
+                pstmt.setInt(3, attendanceId);
+                
                 return pstmt.executeUpdate() > 0;
             }
 
@@ -344,17 +344,19 @@ public class AttendanceDAO {
     }
 
    //勤怠記録を更新する際に、更新対象の記録を除いて時間重複がないか確認
-    public boolean hasTimeOverlapForUpdate(String userId, LocalDateTime oldCheckIn,
+   // 既存の時間と重複してもいいように、attendanceIdで取得してくる
+    public boolean hasTimeOverlapForUpdate(int attendanceId, String userId,
                                          LocalDateTime newCheckIn, LocalDateTime newCheckOut) {
         String sql = "SELECT COUNT(*) FROM attendance " +
-                     "WHERE user_id = ? AND check_in_time != ? AND " +
-                     "check_in_time < ? AND (check_out_time > ? OR check_out_time IS NULL)";
+                     "WHERE user_id = ? AND id != ?" +
+        		     "AND check_in_time < ?" +
+                     "AND (check_out_time > ? OR check_out_time IS NULL)";
 
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, userId);
-            pstmt.setTimestamp(2, Timestamp.valueOf(oldCheckIn));
+            pstmt.setInt(2, attendanceId);
             pstmt.setTimestamp(3, Timestamp.valueOf(newCheckOut != null ? newCheckOut : LocalDateTime.MAX));
             pstmt.setTimestamp(4, Timestamp.valueOf(newCheckIn));
 

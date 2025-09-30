@@ -343,8 +343,7 @@ public class AttendanceServlet extends HttpServlet {
         return result;
     }
 
-    // 手動勤怠処理
-
+    // 手動勤怠追加
     private void handleAddManual(HttpServletRequest request, HttpSession session, String targetUserId)
             throws UserOperationException {
 
@@ -379,10 +378,12 @@ public class AttendanceServlet extends HttpServlet {
     private void handleUpdateManual(HttpServletRequest request, HttpSession session, String targetUserId)
             throws UserOperationException {
 
+    	// oldは必要ないけれど、念のため残しておく
         String oldCheckInStr = request.getParameter("oldCheckInTime");
         String oldCheckOutStr = request.getParameter("oldCheckOutTime");
         String newCheckInStr = request.getParameter("newCheckInTime");
         String newCheckOutStr = request.getParameter("newCheckOutTime");
+        int attendanceId = Integer.parseInt(request.getParameter("attendanceId"));
 
         LocalDateTime oldCheckIn = LocalDateTime.parse(oldCheckInStr);
         LocalDateTime oldCheckOut =
@@ -396,13 +397,13 @@ public class AttendanceServlet extends HttpServlet {
             return;
         }
 
-        if (attendanceDAO.hasTimeOverlapForUpdate(targetUserId, oldCheckIn, newCheckIn, newCheckOut)) {
+        if (attendanceDAO.hasTimeOverlapForUpdate(attendanceId, targetUserId, newCheckIn, newCheckOut)) {
             session.setAttribute("script",
                     "alert('更新できませんでした。入力された期間にすでに他の勤怠記録が存在します。');");
             return;
         }
 
-        if (attendanceDAO.updateManualAttendance(targetUserId, oldCheckIn, oldCheckOut, newCheckIn, newCheckOut)) {
+        if (attendanceDAO.updateManualAttendance(attendanceId,targetUserId, newCheckIn, newCheckOut)) {
             session.setAttribute("script", "alert('勤怠記録を手動で更新しました。');");
         } else {
             session.setAttribute("script", "alert('勤怠記録の更新に失敗しました。');");
