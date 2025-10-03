@@ -285,7 +285,7 @@ public class AttendanceDAO {
                 throw new UserOperationException("更新後の時間帯が既存の勤怠と重複しています。");
             }
 
-            String sql = "UPDATE attendance SET check_in_time = ?, check_out_time = ? WHERE user_id = ?";
+            String sql = "UPDATE attendance SET check_in_time = ?, check_out_time = ? WHERE id = ?";
             try (Connection conn = DBUtils.getConnection();
                  PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setTimestamp(1, Timestamp.valueOf(newCheckIn));
@@ -323,8 +323,9 @@ public class AttendanceDAO {
      */
     public boolean hasTimeOverlap(String userId, LocalDateTime newCheckIn, LocalDateTime newCheckOut) {
         String sql = "SELECT COUNT(*) FROM attendance " +
-                     "WHERE user_id = ? AND " +
-                     "check_in_time < ? AND (check_out_time > ? OR check_out_time IS NULL)";
+                     "WHERE user_id = ? AND id != ?" +
+                     "AND check_in_time < ? " +
+                     "AND (check_out_time > ? OR check_out_time IS NULL)";
 
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {

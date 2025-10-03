@@ -378,20 +378,16 @@ public class AttendanceServlet extends HttpServlet {
     private void handleUpdateManual(HttpServletRequest request, HttpSession session, String targetUserId)
             throws UserOperationException {
 
-    	// oldは必要ないけれど、念のため残しておく
-        String oldCheckInStr = request.getParameter("oldCheckInTime");
-        String oldCheckOutStr = request.getParameter("oldCheckOutTime");
         String newCheckInStr = request.getParameter("newCheckInTime");
         String newCheckOutStr = request.getParameter("newCheckOutTime");
         int attendanceId = Integer.parseInt(request.getParameter("attendanceId"));
+        
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
 
-        LocalDateTime oldCheckIn = LocalDateTime.parse(oldCheckInStr);
-        LocalDateTime oldCheckOut =
-                oldCheckOutStr != null && !oldCheckOutStr.isEmpty() ? LocalDateTime.parse(oldCheckOutStr) : null;
-        LocalDateTime newCheckIn = LocalDateTime.parse(newCheckInStr);
+        LocalDateTime newCheckIn = LocalDateTime.parse(newCheckInStr, formatter);
         LocalDateTime newCheckOut =
-                newCheckOutStr != null && !newCheckOutStr.isEmpty() ? LocalDateTime.parse(newCheckOutStr) : null;
-
+            (newCheckOutStr != null && !newCheckOutStr.isEmpty()) ? LocalDateTime.parse(newCheckOutStr, formatter) : null;
+        
         if (newCheckOut != null && newCheckIn.isAfter(newCheckOut)) {
             session.setAttribute("script", "alert('新しい退勤時間は出勤時間より後である必要があります。');");
             return;
