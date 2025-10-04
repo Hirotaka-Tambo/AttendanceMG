@@ -36,6 +36,8 @@ public class AttendanceServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+    	
+    	System.out.println("====テスト=====");
 
         HttpSession session = request.getSession(false);
         User user = session != null ? (User) session.getAttribute("user") : null;

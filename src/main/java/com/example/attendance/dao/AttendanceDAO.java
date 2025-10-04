@@ -292,12 +292,19 @@ public class AttendanceDAO {
                 pstmt.setTimestamp(2, newCheckOut != null ? Timestamp.valueOf(newCheckOut) : null);
                 pstmt.setInt(3, attendanceId);
                 
-                return pstmt.executeUpdate() > 0;
+                
+                //デバッグでの確認
+                System.out.println("更新対象ID: " + attendanceId);
+
+                int rows = pstmt.executeUpdate();
+                System.out.println("更新件数: " + rows);
+                
+                return rows > 0;
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
-            throw new RuntimeException("手動での勤怠記録の更新に失敗しました。", e);
+            throw new RuntimeException("手動での勤怠記録の更新に失敗しました。"+ e.getMessage(),e);
         }
     }
 
@@ -348,10 +355,12 @@ public class AttendanceDAO {
    // 既存の時間と重複してもいいように、attendanceIdで取得してくる
     public boolean hasTimeOverlapForUpdate(int attendanceId, String userId,
                                          LocalDateTime newCheckIn, LocalDateTime newCheckOut) {
-        String sql = "SELECT COUNT(*) FROM attendance " +
-                     "WHERE user_id = ? AND id != ?" +
-        		     "AND check_in_time < ?" +
-                     "AND (check_out_time > ? OR check_out_time IS NULL)";
+    	boolean result = false;
+    	
+    	String sql = "SELECT COUNT(*) FROM attendance " +
+                "WHERE user_id = ? AND id != ? " +
+                "AND check_in_time < ? " +
+                "AND (check_out_time > ? OR check_out_time IS NULL)";
 
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -362,13 +371,19 @@ public class AttendanceDAO {
             pstmt.setTimestamp(4, Timestamp.valueOf(newCheckIn));
 
             try (ResultSet rs = pstmt.executeQuery()) {
-                return rs.next() && rs.getInt(1) > 0;
+            	if (rs.next()) {
+                    result = rs.getInt(1) > 0;
+                }
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
-            throw new RuntimeException("更新時の時間重複の確認に失敗しました。", e);
+            throw new RuntimeException("更新時の時間重複の確認に失敗しました。"+ e.getMessage());
         }
+        
+        // デバッグログ
+        System.out.println("時間重複チェック結果: " + result);
+        return result;
     }
 
     /*
