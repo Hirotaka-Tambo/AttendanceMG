@@ -234,6 +234,7 @@
    
    <div class="card">
     <h2>詳細勤怠履歴</h2>
+    <div class="table-scroll">
     <table class="summary-table">
         <thead>
             <tr>
@@ -274,6 +275,7 @@
             </c:if>
         </tbody>
     </table>
+    </div> 
   </div>
 
   <div class = "card">

@@ -27,6 +27,7 @@ body{
     margin: 30px 10px 30px 10px;
     border: 1px solid #e9ecef;
 	transition: transform 0.3s ease, box-shadow 0.3s ease; 
+	overflow: visible;
 }
 
 .card:hover {
@@ -290,6 +291,24 @@ flex: 1;
 	background-color: #c82333;
 	transform: translateY(-5px);
 	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.table-scroll{
+	display: block;
+	max-height: 400px;
+	overflow-y: auto;
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	margin-top: 10px;
+}
+
+.table-scroll::-webkit-scrollbar{
+	width: 8px;
+}
+
+.table-scroll::-webkit-scrollbar-thumb{
+	background-color: #aaa;
+	border-radius: 4px;
 }
 
 /*管理者画面グラフ*/
