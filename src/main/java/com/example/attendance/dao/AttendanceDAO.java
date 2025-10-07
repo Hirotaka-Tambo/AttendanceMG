@@ -358,17 +358,20 @@ public class AttendanceDAO {
     	boolean result = false;
     	
     	String sql = "SELECT COUNT(*) FROM attendance " +
-                "WHERE user_id = ? AND id != ? " +
-                "AND check_in_time < ? " +
-                "AND (check_out_time > ? OR check_out_time IS NULL)";
-
+                "WHERE user_id = ? " +
+                "AND id <> ? " + // 自分自身を除外
+                "AND (" +
+                "    (check_in_time < ? AND (check_out_time IS NULL OR check_out_time > ?))" +
+                ")";
+    	
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, userId);
             pstmt.setInt(2, attendanceId);
-            pstmt.setTimestamp(3, Timestamp.valueOf(newCheckOut != null ? newCheckOut : LocalDateTime.MAX));
+            pstmt.setTimestamp(3, Timestamp.valueOf(newCheckOut != null ? newCheckOut : newCheckIn.plusHours(24)));
             pstmt.setTimestamp(4, Timestamp.valueOf(newCheckIn));
+            pstmt.setTimestamp(5, Timestamp.valueOf(newCheckIn));
 
             try (ResultSet rs = pstmt.executeQuery()) {
             	if (rs.next()) {

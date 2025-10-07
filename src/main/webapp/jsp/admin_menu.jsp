@@ -306,11 +306,11 @@
         <input type="hidden" name="targetUserId" id="edit-userId">
         <p>
             <label>出勤時刻:</label>
-            <input type="datetime-local" name="checkInTime" id="edit-checkInTime" required>
+            <input type="datetime-local" name="newCheckInTime" id="edit-checkInTime" required>
         </p>
         <p>
             <label>退勤時刻:</label>
-            <input type="datetime-local" name="checkOutTime" id="edit-checkOutTime">
+            <input type="datetime-local" name="newCheckOutTime" id="edit-checkOutTime">
         </p>
         <div class="button-group">
             <input type="submit" value="更新" class="button">
